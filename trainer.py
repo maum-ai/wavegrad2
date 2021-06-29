@@ -1,4 +1,4 @@
-from lightning_model import NuWave
+from lightning_model import Wavegrad2
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from omegaconf import OmegaConf as OC
@@ -64,7 +64,7 @@ def train(args):
     hparams.name = f"{hparams.log.name}_{now}"
     os.makedirs(hparams.log.tensorboard_dir, exist_ok=True)
     os.makedirs(hparams.log.checkpoint_dir, exist_ok=True)
-    model = NuWave(hparams)
+    model = Wavegrad2(hparams)
     tblogger = TensorBoardLoggerExpanded(hparams)
     ckpt_path = f'{hparams.log.name}_{now}_{{epoch}}'
     checkpoint_callback = ModelCheckpoint(filepath=os.path.join(
@@ -72,7 +72,7 @@ def train(args):
                                           verbose=True,
                                           save_last=True,
                                           save_top_k=3,
-                                          monitor='val_loss',
+                                          monitor='val/loss',
                                           mode='min',
                                           prefix='')
 

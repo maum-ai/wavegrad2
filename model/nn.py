@@ -78,7 +78,7 @@ class WaveGradNN(BaseModule):
         ])
 
         # Building FiLM connections (in order of downscaling stream)
-        film_in_sizes = [32] + hparams.arch.downsample.out_channels
+        film_in_sizes = [32] + list(hparams.arch.downsample.out_channels)
         film_out_sizes = hparams.arch.upsample.out_channels[::-1]
         film_factors = [1] + hparams.arch.scale_factors[1:][::-1]
         self.films = torch.nn.ModuleList([
@@ -91,7 +91,7 @@ class WaveGradNN(BaseModule):
             )
         ])
 
-    def forward(self, mels, yn, noise_level):
+    def forward(self, yn, hidden_rep, noise_level):
         """
         Computes forward pass of neural network.
         :param mels (torch.Tensor): mel-spectrogram acoustic features of shape [B, n_mels, T//hop_length]
@@ -100,10 +100,9 @@ class WaveGradNN(BaseModule):
         :return (torch.Tensor): epsilon noise
         """
         # Prepare inputs
-        assert len(mels.shape) == 3  # B, n_mels, T
+        assert len(hidden_rep.shape) == 3  # B, n_mels, T
         yn = yn.unsqueeze(1)
         assert len(yn.shape) == 3  # B, 1, T
-
         # Downsampling stream + Linear Modulation statistics calculation
         statistics = []
         dblock_outputs = self.dblock_preconv(yn)
@@ -114,9 +113,9 @@ class WaveGradNN(BaseModule):
             scale, shift = film(x=dblock_outputs, noise_level=noise_level)
             statistics.append([scale, shift])
         statistics = statistics[::-1]
-        
+
         # Upsampling stream
-        ublock_outputs = self.ublock_preconv(mels)
+        ublock_outputs = self.ublock_preconv(hidden_rep)
         for i, ublock in enumerate(self.ublocks):
             scale, shift = statistics[i]
             ublock_outputs = ublock(x=ublock_outputs, scale=scale, shift=shift)

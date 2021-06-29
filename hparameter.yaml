@@ -1,33 +1,65 @@
 train:
-  batch_size: 18
-  lr: 0.00003
-  weight_decay: 0.00
-  num_workers: 64
-  gpus: 2 #ddp
-  opt_eps: 1e-9
-  beta1: 0.5
-  beta2: 0.999
+  batch_size: 1
+  adam:
+    lr: 2.2e-4 # baseline 학습/warm start 시에는 1e-3
+    weight_decay: 1e-6
+  decay:
+    rate: 0.1
+    start: 5000
+    end: 20000
+  num_workers: 16
+  gpus: 1 #ddp
+  loss_rate:
+    dur: 2.0
 
 data:
-  dir: '/DATA1/VCTK/VCTK-Corpus/wav48' #dir/spk/format
-  format: '*mic1.pt'
-  cv_ratio: (100./108., 8./108., 0.00) #train/val/test
+  lang: 'kor'
+  text_cleaners: ['korean_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
+  speakers: ['kss', 'KVA_W', 'KVA_M', 'lec01', 'ma', 'fa', 'SDS', 'agent', 'care', 'president', 'soojin', 'CWWFEMALE_CONVERSATION', 'CWWFEMALE_FAIRY', 'CWWFEMALE_INFORMATION', 'CWWFEMALE_NOVEL', 'CWWFEMALE_SPEECH', 'CWWMALE_CONVERSATION', 'CWWMALE_FAIRY', 'CWWMALE_INFORMATION', 'CWWMALE_NOVEL', 'CWWMALE_SPEECH', 'YJH', 'JIS', 'KSH', 'KANE_NORMAL', 'KANE_ANGRY'] # speaker 수는 1명일 때 works well
+  train_dir: '/DATA1/hansw/non_attentive/preprocessed_data/Baseline26/'
+  train_meta: 'train.txt'  # relative path of metadata file from train_dir
+  val_dir: '/DATA1/hansw/non_attentive/preprocessed_data/Baseline26/'
+  val_meta: 'val.txt'  # relative path of metadata file from val_dir'
+  rawdata_dir: '/DATA1/hansw/non_attentive/raw_data/Baseline26/'
 
 audio:
-  sr: 48000
+  sampling_rate: 22050
   nfft: 1024
   hop: 256
   ratio: 2 #upscale_ratio
   length: 32768 #32*1024 ~ 1sec
 
+chn:
+  encoder: 512
+  speaker: 64
+  # decoder
+  prenet: 256
+  postnet: 512
+  attention_rnn: 1024
+  attention: 128
+  decoder_rnn: 1024
+  ### NON-ATTENTIVE ###
+  dur_lstm: 512
+  range_lstm: 512
+ker:
+  encoder: 5
+  postnet: 5
+depth:
+  encoder: 3
+  prenet: 2
+  postnet: 5
+
+window:
+  scale: 300          
+
 arch:
-  encode_channel: 256 ##need to check
+  encode_channel: 576 ##need to check
   scale_factors: [5,5,3,2,2]
   upsample:
     preconv_channel: 768
     out_channels: [512, 512, 256, 128, 128]
-    dilations: [[1,2,1,2],[1,2,1,2],[1,2,4,8],[1,2,4,8]]
-  dwonsample:
+    dilations: [[1,2,1,2],[1,2,1,2],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
+  downsample:
     preconv_channel: 32
     out_channels: [128, 128, 256, 512]
     dilations: [[1,2,4],[1,2,4],[1,2,4],[1,2,4]]
@@ -42,7 +74,7 @@ ddpm:
   infer_schedule: "torch.tensor([1e-6,2e-6,1e-5,1e-4,1e-3,1e-2,1e-1,9e-1])"
 
 log:
-  name: 'nuwave_x2'
+  name: 'wavegrad2'
   checkpoint_dir: 'checkpoint'
   tensorboard_dir: 'tensorboard'
   test_result_dir: 'test_sample/result'
