@@ -67,8 +67,8 @@ def train(args):
     model = Wavegrad2(hparams)
     tblogger = TensorBoardLoggerExpanded(hparams)
     ckpt_path = f'{hparams.log.name}_{now}_{{epoch}}'
-    checkpoint_callback = ModelCheckpoint(filepath=os.path.join(
-        hparams.log.checkpoint_dir, ckpt_path),
+    checkpoint_callback = ModelCheckpoint(dirpath=hparams.log.checkpoint_dir,
+                                          filename=ckpt_path,
                                           verbose=True,
                                           save_last=True,
                                           save_top_k=3,
@@ -109,15 +109,15 @@ def train(args):
         amp_backend='apex',  #
         amp_level='O2',  #
         #num_sanity_val_steps = -1,
-        check_val_every_n_epoch=2,
+        check_val_every_n_epoch=1,
         gradient_clip_val = 0.5,
         max_epochs=200000,
         logger=tblogger,
         progress_bar_refresh_rate=4,
-        callbacks=[
-            EMACallback(os.path.join(hparams.log.checkpoint_dir, 
-                        f'{hparams.name}_epoch={{epoch}}_EMA'))
-                  ],
+        # callbacks=[
+        #     EMACallback(os.path.join(hparams.log.checkpoint_dir,
+        #                 f'{hparams.name}_epoch={{epoch}}_EMA'))
+        #           ],
         resume_from_checkpoint=None
         if args.resume_from == None or args.restart else sorted(
             glob(

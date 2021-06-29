@@ -14,6 +14,7 @@ from utils.tblogger import TensorBoardLoggerExpanded
 from model.encoder import TextEncoder
 from model.resampling import Resampling
 from model.nn import WaveGradNN
+from model.window import Window
 
 
 class Wavegrad2(pl.LightningModule):
@@ -26,8 +27,8 @@ class Wavegrad2(pl.LightningModule):
         self.speaker_embedding = nn.Embedding(len(hparams.data.speakers), hparams.chn.speaker)
         self.resampling = Resampling(hparams)
         self.warm_start = False
-        self.is_val_first = True
 
+        self.window = Window(hparams)
         self.decoder = WaveGradNN(hparams)
         self.filter_ratio = [1. / hparams.audio.ratio]
         self.norm = nn.L1Loss()  # loss
@@ -154,27 +155,29 @@ class Wavegrad2(pl.LightningModule):
             t -= 1
         return ys if store_intermediate_states else ys[-1]
 
-    def forward(self, text, wav_noisy, duration_target, speakers, input_lengths, output_lengths, noise_level, no_mask=False):
+    def forward(self, text, wav, duration_target, speakers, input_lengths, output_lengths, noise_level, no_mask=False):
         text_encoding = self.encoder(text, input_lengths)  # [B, N, chn.encoder]
         speaker_emb = self.speaker_embedding(speakers)  # [B, chn.speaker]
         speaker_emb = speaker_emb.unsqueeze(1).expand(-1, text_encoding.size(1), -1)  # [B, N, chn.speaker]
         decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
         hidden_rep, alignment, duration = \
             self.resampling(decoder_input, duration_target, input_lengths, output_lengths, no_mask)
-        x = self.decoder(wav_noisy, hidden_rep, noise_level)
-        return x, alignment, duration
+        wav_sliced, hidden_rep_sliced = self.window(wav, hidden_rep, output_lengths)
+        eps = torch.randn_like(wav_sliced, device=wav.device)
+        wav_noisy_sliced = self.q_sample(wav_sliced, noise_level=noise_level, eps=eps)
+        eps_recon = self.decoder(wav_noisy_sliced, hidden_rep_sliced, noise_level)
+        return eps_recon, eps, wav_sliced, wav_noisy_sliced, alignment, duration
 
     def common_step(self, text, wav, duration_target, speakers, input_lengths, output_lengths, step, no_mask=False):
         noise_level = self.sample_continuous_noise_level(step) \
             if self.training \
             else self.sqrt_alphas_cumprod_prev[step].unsqueeze(-1)
-        eps = torch.randn_like(wav, device=wav.device)
-        wav_noisy = self.q_sample(wav, noise_level=noise_level, eps=eps)
-        eps_recon, alignment, duration = self(text, wav_noisy, duration_target, speakers, input_lengths, output_lengths, noise_level)
+        eps_recon, eps, wav_sliced, wav_noisy_sliced, alignment, duration = \
+            self(text, wav, duration_target, speakers, input_lengths, output_lengths, noise_level)
         noise_loss = self.norm(eps_recon, eps)
         duration_loss = F.mse_loss(duration, duration_target / (self.hparams.audio.sampling_rate / self.hparams.window.scale))
         loss = noise_loss + self.hparams.train.loss_rate.dur * duration_loss
-        return loss, noise_loss, duration_loss, wav, wav_noisy, eps, eps_recon, alignment
+        return loss, noise_loss, duration_loss, wav_sliced, wav_noisy_sliced, eps, eps_recon, alignment
 
     def inference(self, text, speakers, max_decoder_steps, mel_chunk_size, prenet_dropout=0.5, attn_reset=False, pace=1.0):
         text_encoding = self.encoder.inference(text)
@@ -237,19 +240,19 @@ class Wavegrad2(pl.LightningModule):
             weight_decay=self.hparams.train.adam.weight_decay,
         )
 
-    def lr_lambda(self, step):
-        progress = (step - self.hparams.train.decay.start) / (self.hparams.train.decay.end - self.hparams.train.decay.start)
-        return self.hparams.train.decay.rate ** np.clip(progress, 0.0, 1.0)
-
-    def optimizer_step(self, epoch_nb, batch_nb, optimizer, optimizer_idx, second_order_closure, using_native_amp, using_lbfgs, on_tpu=False):
-        lr_scale = self.lr_lambda(self.global_step)
-        for pg in optimizer.param_groups:
-            pg['lr'] = lr_scale * self.hparams.train.adam.lr
-
-        optimizer.step()
-        optimizer.zero_grad()
-
-        self.trainer.logger.log_learning_rate(lr_scale * self.hparams.train.adam.lr, self.global_step)
+    # def lr_lambda(self, step):
+    #     progress = (step - self.hparams.train.decay.start) / (self.hparams.train.decay.end - self.hparams.train.decay.start)
+    #     return self.hparams.train.decay.rate ** np.clip(progress, 0.0, 1.0)
+    #
+    # def optimizer_step(self, epoch_nb, batch_nb, optimizer, optimizer_idx, second_order_closure, using_native_amp, using_lbfgs, on_tpu=False):
+    #     lr_scale = self.lr_lambda(self.global_step)
+    #     for pg in optimizer.param_groups:
+    #         pg['lr'] = lr_scale * self.hparams.train.adam.lr
+    #
+    #     optimizer.step()
+    #     optimizer.zero_grad()
+    #
+    #     self.trainer.logger.log_learning_rate(lr_scale * self.hparams.train.adam.lr, self.global_step)
 
     def train_dataloader(self):
         return dataloader.create_dataloader(self.hparams, 0)

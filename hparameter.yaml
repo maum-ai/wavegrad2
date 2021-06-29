@@ -1,5 +1,5 @@
 train:
-  batch_size: 1
+  batch_size: 32
   adam:
     lr: 2.2e-4 # baseline 학습/warm start 시에는 1e-3
     weight_decay: 1e-6
@@ -50,7 +50,8 @@ depth:
   postnet: 5
 
 window:
-  scale: 300          
+  scale: 300
+  length: 64
 
 arch:
   encode_channel: 576 ##need to check
