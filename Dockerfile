@@ -33,9 +33,9 @@ COPY *py /workspace/
 COPY *yaml /workspace/
 COPY utils /workspace/utils
 
-ARG USER_ID
-ARG GROUP_ID
-RUN addgroup --gid $GROUP_ID your_id
-RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID your_id
+#ARG USER_ID
+#ARG GROUP_ID
+#RUN addgroup --gid $GROUP_ID your_id
+#RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID your_id
 
-USER your_id
+#USER your_id

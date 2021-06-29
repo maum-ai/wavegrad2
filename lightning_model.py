@@ -223,8 +223,8 @@ class Wavegrad2(pl.LightningModule):
                                                 step[i].item(),
                                                 self.current_epoch)
             self.trainer.logger.log_audio(wav[i], wav_noisy[i],
-                                          wav_recon[i], eps_error[i],
-                                          self.current_epoch)
+                                          wav_recon[i], self.current_epoch)
+            self.trainer.logger.log_alignment(alignment[i], self.current_epoch)
         return {
             'val_loss': loss,
         }
