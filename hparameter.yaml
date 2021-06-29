@@ -20,13 +20,17 @@ audio:
   ratio: 2 #upscale_ratio
   length: 32768 #32*1024 ~ 1sec
 
+window:
+  scale: 300
+  length: 64
+
 arch:
   encode_channel: 256 ##need to check
   scale_factors: [5,5,3,2,2]
   upsample:
     preconv_channel: 768
     out_channels: [512, 512, 256, 128, 128]
-    dilations: [[1,2,1,2],[1,2,1,2],[1,2,4,8],[1,2,4,8]]
+    dilations: [[1,2,1,2],[1,2,1,2],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
   dwonsample:
     preconv_channel: 32
     out_channels: [128, 128, 256, 512]
@@ -42,7 +46,7 @@ ddpm:
   infer_schedule: "torch.tensor([1e-6,2e-6,1e-5,1e-4,1e-3,1e-2,1e-1,9e-1])"
 
 log:
-  name: 'nuwave_x2'
+  name: 'wavegrad2'
   checkpoint_dir: 'checkpoint'
   tensorboard_dir: 'tensorboard'
   test_result_dir: 'test_sample/result'
