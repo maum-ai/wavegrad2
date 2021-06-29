@@ -12,11 +12,10 @@ class Window(BaseModule):
         self.length = hparams.window.length
 
     def forward(self, yn, hidden_rep, output_length):
-        start_index = (torch.rand(output_length.size(), device=yn.device) *
-                       (output_length - self.length)).long()
         yn_sliced = list()
         hidden_sliced = list()
         for i in range(yn.size(0)):
+            start_index = torch.randint(0, output_length[i] - self.length, (1,)).squeeze(0)
             hidden_sliced.append(hidden_rep[i, :, start_index:start_index +
                                             self.length])
             yn_sliced.append(yn[i, :, self.scale * start_index:self.scale *
