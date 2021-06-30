@@ -21,6 +21,7 @@ class Wavegrad2(pl.LightningModule):
     def __init__(self, hparams, train=True):
         super().__init__()
         self.save_hyperparameters(hparams)
+        self.scale = hparams.window.scale
         self.symbols = Language(hparams.data.lang, hparams.data.text_cleaners).get_symbols()
         self.symbols = ['"{}"'.format(symbol) for symbol in self.symbols]
         self.encoder = TextEncoder(hparams.chn.encoder, hparams.ker.encoder, hparams.depth.encoder, len(self.symbols))
@@ -113,11 +114,11 @@ class Wavegrad2(pl.LightningModule):
 
     # t: interger not tensor
     @torch.no_grad()
-    def p_mean_variance(self, y, y_down, t, clip_denoised: bool):
+    def p_mean_variance(self, y, hidden_rep, t, clip_denoised: bool):
         batch_size = y.shape[0]
         noise_level = self.sqrt_alphas_cumprod_prev[t + 1].repeat(
             batch_size, 1)
-        eps_recon = self.model(y, y_down, noise_level)
+        eps_recon = self.decoder(y, hidden_rep, noise_level)
         y_recon = self.predict_start_from_noise(y, t, eps_recon)
         if clip_denoised:
             y_recon.clamp_(-1.0, 1.0)
@@ -127,30 +128,27 @@ class Wavegrad2(pl.LightningModule):
         return model_mean, posterior_log_variance_clipped
 
     @torch.no_grad()
-    def compute_inverse_dynamincs(self, y, y_down, t, clip_denoised=False):
+    def compute_inverse_dynamincs(self, y, hidden_rep, t, clip_denoised=False):
         model_mean, model_log_variance = self.p_mean_variance(
-            y, y_down, t, clip_denoised)
+            y, hidden_rep, t, clip_denoised)
         eps = torch.randn_like(y) if t > 0 else torch.zeros_like(y)
         return model_mean + eps * (0.5 * model_log_variance).exp()
 
     @torch.no_grad()
-    def sample(self, y_down,
+    def sample(self, hidden_rep,
                start_step=None,
-               init_noise=True,
                store_intermediate_states=False):
-        batch_size = y_down.shape[0]
+        batch_size, T = hidden_rep.shape[0], hidden_rep.shape[-1]
         start_step = self.max_step if start_step is None \
             else min(start_step, self.max_step)
         step = torch.tensor([start_step] * batch_size,
                             dtype=torch.long,
                             device=self.device)
-        y_t = torch.randn_like(
-            y_down, device=self.device) if init_noise \
-            else self.q_sample(y_down, step=step)
+        y_t = torch.randn(batch_size, T * self.scale, device=self.device)
         ys = [y_t]
         t = start_step - 1
         while t >= 0:
-            y_t = self.compute_inverse_dynamincs(y_t, y_down, t)
+            y_t = self.compute_inverse_dynamincs(y_t, hidden_rep, t)
             ys.append(y_t)
             t -= 1
         return ys if store_intermediate_states else ys[-1]
@@ -166,18 +164,18 @@ class Wavegrad2(pl.LightningModule):
         eps = torch.randn_like(wav_sliced, device=wav.device)
         wav_noisy_sliced = self.q_sample(wav_sliced, noise_level=noise_level, eps=eps)
         eps_recon = self.decoder(wav_noisy_sliced, hidden_rep_sliced, noise_level)
-        return eps_recon, eps, wav_sliced, wav_noisy_sliced, alignment, duration
+        return eps_recon, eps, wav_sliced, wav_noisy_sliced, hidden_rep_sliced, alignment, duration
 
     def common_step(self, text, wav, duration_target, speakers, input_lengths, output_lengths, step, no_mask=False):
         noise_level = self.sample_continuous_noise_level(step) \
             if self.training \
             else self.sqrt_alphas_cumprod_prev[step].unsqueeze(-1)
-        eps_recon, eps, wav_sliced, wav_noisy_sliced, alignment, duration = \
+        eps_recon, eps, wav_sliced, wav_noisy_sliced, hidden_rep_sliced, alignment, duration = \
             self(text, wav, duration_target, speakers, input_lengths, output_lengths, noise_level)
         noise_loss = self.norm(eps_recon, eps)
         duration_loss = F.mse_loss(duration, duration_target / (self.hparams.audio.sampling_rate / self.hparams.window.scale))
         loss = noise_loss + self.hparams.train.loss_rate.dur * duration_loss
-        return loss, noise_loss, duration_loss, wav_sliced, wav_noisy_sliced, eps, eps_recon, alignment
+        return loss, noise_loss, duration_loss, wav_sliced, wav_noisy_sliced, eps, eps_recon, hidden_rep_sliced, alignment
 
     def inference(self, text, speakers, max_decoder_steps, mel_chunk_size, prenet_dropout=0.5, attn_reset=False, pace=1.0):
         text_encoding = self.encoder.inference(text)
@@ -207,7 +205,7 @@ class Wavegrad2(pl.LightningModule):
 
         step = torch.randint(
             0, self.max_step, (wav.shape[0],), device=self.device) + 1
-        loss, noise_loss, duration_loss, wav, wav_noisy, eps, eps_recon, alignment = \
+        loss, noise_loss, duration_loss, wav, wav_noisy, eps, eps_recon, hidden_rep, alignment = \
             self.common_step(text, wav, duration_target, speakers, input_lengths, output_lengths, step)
 
         self.log('val/noise_loss', noise_loss, sync_dist=True)
@@ -218,13 +216,16 @@ class Wavegrad2(pl.LightningModule):
             wav_recon = self.predict_start_from_noise(wav_noisy, step - 1,
                                                     eps_recon)
             eps_error = eps - eps_recon
+            hidden_rep_i = hidden_rep[i].unsqueeze(0)
+            wav_recon_allstep = self.sample(hidden_rep_i, store_intermediate_states=False)
             self.trainer.logger.log_spectrogram(wav[i], wav_noisy[i],
-                                                wav_recon[i], eps_error[i],
+                                                wav_recon[i], eps_error[i], wav_recon_allstep[0],
                                                 step[i].item(),
                                                 self.current_epoch)
             self.trainer.logger.log_audio(wav[i], wav_noisy[i],
-                                          wav_recon[i], self.current_epoch)
+                                          wav_recon[i], wav_recon_allstep[0], self.current_epoch)
             self.trainer.logger.log_alignment(alignment[i], self.current_epoch)
+
         return {
             'val_loss': loss,
         }

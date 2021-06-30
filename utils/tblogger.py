@@ -28,13 +28,13 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
         return data
 
     def plot_spectrogram_to_numpy(self, y, y_noisy, y_recon,
-                                  eps_error, step):
+                                  eps_error, y_recon_allstep, step):
 
-        name_list = ['y', 'y_noisy', 'y_recon','errer_recon']
-        fig = plt.figure(figsize=(9, 12))
+        name_list = ['y', 'y_noisy', 'y_recon','errer_recon', 'y_recon_allstep']
+        fig = plt.figure(figsize=(9, 15))
         fig.suptitle(f'Diffstep_{step}')
-        for i, yy in enumerate([y, y_noisy, y_recon, eps_error]):
-            ax=plt.subplot(4, 1, i + 1)
+        for i, yy in enumerate([y, y_noisy, y_recon, eps_error, y_recon_allstep]):
+            ax=plt.subplot(5, 1, i + 1)
             ax.set_title(name_list[i])
             plt.imshow(rosa.amplitude_to_db(self.stftmag(yy).numpy(),
                        ref=np.max,top_db=80.),
@@ -55,14 +55,14 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
         return data
 
     @rank_zero_only
-    def log_spectrogram(self, y, y_noisy, y_recon, eps_error,
+    def log_spectrogram(self, y, y_noisy, y_recon, eps_error, y_recon_allstep,
                         diff_step, epoch):
-        y, y_noisy, y_recon, eps_error = y.detach().cpu(
-        ), y_noisy.detach().cpu(
-        ), y_recon.detach().cpu(), eps_error.detach().cpu()
+        y, y_noisy, y_recon, eps_error, y_recon_allstep = \
+            y.detach().cpu(), y_noisy.detach().cpu(), y_recon.detach().cpu(), \
+            eps_error.detach().cpu(), y_recon_allstep.detach().cpu()
         spec_img = self.plot_spectrogram_to_numpy(
                 y, y_noisy, y_recon,
-                eps_error, diff_step)
+                eps_error, y_recon_allstep, diff_step)
         self.experiment.add_image(path.join(self.save_dir, 'result'),
                                   spec_img,
                                   epoch,
@@ -96,15 +96,14 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
         return
 
     @rank_zero_only
-    def log_audio(self, y, y_noisy, y_recon, epoch):
-        y, y_noisy, y_recon, = y.detach().cpu(
-        ), y_noisy.detach().cpu(
-        ), y_recon.detach().cpu()
+    def log_audio(self, y, y_noisy, y_recon, y_recon_allstep, epoch):
+        y, y_noisy, y_recon, y_recon_allstep = y.detach().cpu(), y_noisy.detach().cpu(), \
+                                               y_recon.detach().cpu(), y_recon_allstep.detach().cpu()
 
 
-        name_list = ['y', 'y_noisy', 'y_recon']
+        name_list = ['y', 'y_noisy', 'y_recon', 'y_recon_allstep']
 
-        for n, yy in zip(name_list, [y, y_noisy, y_recon]):
+        for n, yy in zip(name_list, [y, y_noisy, y_recon, y_recon_allstep]):
             self.experiment.add_audio(n,
                                       yy, epoch, self.hparam.audio.sampling_rate)
         
