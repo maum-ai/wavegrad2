@@ -1,57 +1,46 @@
-#Some codes are adopted from
-#https://github.com/ivanvovk/WaveGrad
-#https://github.com/lmnt-com/diffwave
-#https://github.com/lucidrains/denoising-diffusion-pytorch
-#https://github.com/hojonathanho/diffusion
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from scipy.io.wavfile import write as swrite
+import random
+import numpy as np
+from omegaconf import OmegaConf
 
-from model.nn import WaveGradNN 
-import dataloader
+from datasets.text import Language
+from datasets import dataloader
 from utils.tblogger import TensorBoardLoggerExpanded
-import filters
-from utils.stft import STFTMag
+from model.encoder import TextEncoder
+from model.resampling import Resampling
+from model.nn import WaveGradNN
+from model.window import Window
 
 
-@torch.jit.script
-def lognorm(pred, target):
-    return (pred - target).abs().mean(dim=-1).clamp(min=1e-20).log().mean()
-
-
-class NuWave(pl.LightningModule):
+class Wavegrad2(pl.LightningModule):
     def __init__(self, hparams, train=True):
         super().__init__()
         self.save_hyperparameters(hparams)
+        self.symbols = Language(hparams.data.lang, hparams.data.text_cleaners).get_symbols()
+        self.symbols = ['"{}"'.format(symbol) for symbol in self.symbols]
+        self.encoder = TextEncoder(hparams.chn.encoder, hparams.ker.encoder, hparams.depth.encoder, len(self.symbols))
+        self.speaker_embedding = nn.Embedding(len(hparams.data.speakers), hparams.chn.speaker)
+        self.resampling = Resampling(hparams)
+        self.warm_start = False
+
+        self.window = Window(hparams)
         self.decoder = WaveGradNN(hparams)
         self.filter_ratio = [1. / hparams.audio.ratio]
-        self.norm = nn.L1Loss()  #loss
-
-        if not train:
-            self.stft = STFTMag(2048, 512)
-
-            def snr(pred, target):
-                return (10 *torch.log10(torch.norm(target, dim=-1) \
-                        /torch.norm(pred -target, dim =-1).clamp(min =1e-8))).mean()
-
-            def lsd(pred, target):
-                sp = torch.log(self.stft(pred).square().clamp(1e-8))
-                st = torch.log(self.stft(target).square().clamp(1e-8))
-                return (sp - st).square().mean(dim=1).sqrt().mean()
-
-            self.snr = snr
-            self.lsd = lsd
+        self.norm = nn.L1Loss()  # loss
 
         self.set_noise_schedule(hparams, train)
-    
+
     # DDPM backbone is adopted form https://github.com/ivanvovk/WaveGrad
     def set_noise_schedule(self, hparams, train=True):
         self.max_step = hparams.ddpm.max_step if train \
-                else hparams.ddpm.infer_step
+            else hparams.ddpm.infer_step
         noise_schedule = eval(hparams.ddpm.noise_schedule) if train \
-                else eval(hparams.ddpm.infer_schedule)
+            else eval(hparams.ddpm.infer_schedule)
 
         self.register_buffer('betas', noise_schedule, False)
         self.register_buffer('alphas', 1 - self.betas, False)
@@ -75,12 +64,12 @@ class NuWave(pl.LightningModule):
         posterior_variance = self.betas * (1 - self.alphas_cumprod_prev) \
                              / (1 - self.alphas_cumprod)
         posterior_variance = torch.stack(
-                            [posterior_variance,
-                             torch.FloatTensor([1e-20] * self.max_step)])
+            [posterior_variance,
+             torch.FloatTensor([1e-20] * self.max_step)])
         posterior_log_variance_clipped = posterior_variance.max(
             dim=0).values.log()
         posterior_mean_coef1 = self.betas * self.alphas_cumprod_prev.sqrt() / (
-            1 - self.alphas_cumprod)
+                1 - self.alphas_cumprod)
         posterior_mean_coef2 = (1 - self.alphas_cumprod_prev
                                 ) * self.alphas.sqrt() / (1 -
                                                           self.alphas_cumprod)
@@ -94,8 +83,8 @@ class NuWave(pl.LightningModule):
     def sample_continuous_noise_level(self, step):
         rand = torch.rand_like(step, dtype=torch.float, device=step.device)
         continuous_sqrt_alpha_cumprod = \
-                self.sqrt_alphas_cumprod_prev[step - 1] * rand \
-                + self.sqrt_alphas_cumprod_prev[step] * (1. - rand)
+            self.sqrt_alphas_cumprod_prev[step - 1] * rand \
+            + self.sqrt_alphas_cumprod_prev[step] * (1. - rand)
         return continuous_sqrt_alpha_cumprod.unsqueeze(-1)
 
     def q_sample(self, y_0, step=None, noise_level=None, eps=None):
@@ -108,11 +97,11 @@ class NuWave(pl.LightningModule):
         if isinstance(eps, type(None)):
             eps = torch.randn_like(y_0, device=y_0.device)
         outputs = continuous_sqrt_alpha_cumprod * y_0 + (
-            1. - continuous_sqrt_alpha_cumprod**2).sqrt() * eps
+                1. - continuous_sqrt_alpha_cumprod ** 2).sqrt() * eps
         return outputs
 
     def q_posterior(self, y_0, y, step):
-        posterior_mean = self.posterior_mean_coef1[step] * y_0  \
+        posterior_mean = self.posterior_mean_coef1[step] * y_0 \
                          + self.posterior_mean_coef2[step] * y
         posterior_log_variance_clipped = self.posterior_log_variance_clipped[step]
         return posterior_mean, posterior_log_variance_clipped
@@ -151,13 +140,13 @@ class NuWave(pl.LightningModule):
                store_intermediate_states=False):
         batch_size = y_down.shape[0]
         start_step = self.max_step if start_step is None \
-                else min(start_step, self.max_step)
+            else min(start_step, self.max_step)
         step = torch.tensor([start_step] * batch_size,
                             dtype=torch.long,
                             device=self.device)
         y_t = torch.randn_like(
-                y_down, device=self.device) if init_noise \
-                else self.q_sample(y_down, step=step)
+            y_down, device=self.device) if init_noise \
+            else self.q_sample(y_down, step=step)
         ys = [y_t]
         t = start_step - 1
         while t >= 0:
@@ -166,117 +155,107 @@ class NuWave(pl.LightningModule):
             t -= 1
         return ys if store_intermediate_states else ys[-1]
 
-    def forward(self, x, x_clean, noise_level):
-        x = self.model(x, x_clean, noise_level)
-        return x
+    def forward(self, text, wav, duration_target, speakers, input_lengths, output_lengths, noise_level, no_mask=False):
+        text_encoding = self.encoder(text, input_lengths)  # [B, N, chn.encoder]
+        speaker_emb = self.speaker_embedding(speakers)  # [B, chn.speaker]
+        speaker_emb = speaker_emb.unsqueeze(1).expand(-1, text_encoding.size(1), -1)  # [B, N, chn.speaker]
+        decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
+        hidden_rep, alignment, duration = \
+            self.resampling(decoder_input, duration_target, input_lengths, output_lengths, no_mask)
+        wav_sliced, hidden_rep_sliced = self.window(wav, hidden_rep, output_lengths)
+        eps = torch.randn_like(wav_sliced, device=wav.device)
+        wav_noisy_sliced = self.q_sample(wav_sliced, noise_level=noise_level, eps=eps)
+        eps_recon = self.decoder(wav_noisy_sliced, hidden_rep_sliced, noise_level)
+        return eps_recon, eps, wav_sliced, wav_noisy_sliced, alignment, duration
 
-    def common_step(self, y, y_low, step):
+    def common_step(self, text, wav, duration_target, speakers, input_lengths, output_lengths, step, no_mask=False):
         noise_level = self.sample_continuous_noise_level(step) \
-                if self.training \
-                else self.sqrt_alphas_cumprod_prev[step].unsqueeze(-1)
-        eps = torch.randn_like(y, device=y.device)
-        y_noisy = self.q_sample(y, noise_level=noise_level, eps=eps)
-        eps_recon = self.model(y_noisy, y_low, noise_level)
-        loss = lognorm(eps_recon, eps)
-        return loss, y, y_low, y_noisy, eps, eps_recon
+            if self.training \
+            else self.sqrt_alphas_cumprod_prev[step].unsqueeze(-1)
+        eps_recon, eps, wav_sliced, wav_noisy_sliced, alignment, duration = \
+            self(text, wav, duration_target, speakers, input_lengths, output_lengths, noise_level)
+        noise_loss = self.norm(eps_recon, eps)
+        duration_loss = F.mse_loss(duration, duration_target / (self.hparams.audio.sampling_rate / self.hparams.window.scale))
+        loss = noise_loss + self.hparams.train.loss_rate.dur * duration_loss
+        return loss, noise_loss, duration_loss, wav_sliced, wav_noisy_sliced, eps, eps_recon, alignment
 
-    def training_step(self, batch, batch_nb):
-        wav, wav_l = batch
+    def inference(self, text, speakers, max_decoder_steps, mel_chunk_size, prenet_dropout=0.5, attn_reset=False, pace=1.0):
+        text_encoding = self.encoder.inference(text)
+        speaker_emb = self.speaker_embedding(speakers)
+        speaker_emb = speaker_emb.unsqueeze(1).expand(-1, text_encoding.size(1), -1)
+        if text_encoding.dtype == torch.float16:
+            speaker_emb = speaker_emb.half()
+        decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
+        return self.teacher.inference(
+            decoder_input, prenet_dropout, attn_reset, max_decoder_steps, mel_chunk_size, pace)
+
+    def training_step(self, batch, batch_idx):
+        text, wav, duration_target, speakers, input_lengths, output_lengths, max_input_len = batch
         step = torch.randint(
-            0, self.max_step, (wav.shape[0], ), device=self.device) + 1
-        loss, *_ = self.common_step(wav, wav_l, step)
-        self.log('loss', loss, sync_dist=True)
+            0, self.max_step, (wav.shape[0],), device=self.device) + 1
+        loss, noise_loss, duration_loss, *_ = \
+            self.common_step(text, wav, duration_target, speakers, input_lengths, output_lengths, step)
+
+        self.log('train/noise_loss', noise_loss, sync_dist=True)
+        self.log('train/duration_loss', duration_loss, sync_dist=True)
+        self.log('train/loss', loss, sync_dist=True)
+
         return loss
 
-    def validation_step(self, batch, batch_nb):
-        wav, wav_l = batch
-        step = torch.randint(
-            0, self.max_step, (wav.shape[0], ), device=self.device) + 1
-        loss, y, y_low, y_noisy, eps, eps_recon = \
-                self.common_step(wav, wav_l, step)
+    def validation_step(self, batch, batch_idx):
+        text, wav, duration_target, speakers, input_lengths, output_lengths, max_input_len = batch
 
-        self.log('val_loss', loss, sync_dist=True)
-        if batch_nb == 0:
-            i = torch.randint(0, wav.shape[0], (1, )).item()
-            y_recon = self.predict_start_from_noise(y_noisy, step - 1,
+        step = torch.randint(
+            0, self.max_step, (wav.shape[0],), device=self.device) + 1
+        loss, noise_loss, duration_loss, wav, wav_noisy, eps, eps_recon, alignment = \
+            self.common_step(text, wav, duration_target, speakers, input_lengths, output_lengths, step)
+
+        self.log('val/noise_loss', noise_loss, sync_dist=True)
+        self.log('val/duration_loss', duration_loss, sync_dist=True)
+        self.log('val/loss', loss, sync_dist=True)
+        if batch_idx == 0:
+            i = torch.randint(0, wav.shape[0], (1,)).item()
+            wav_recon = self.predict_start_from_noise(wav_noisy, step - 1,
                                                     eps_recon)
             eps_error = eps - eps_recon
-            self.trainer.logger.log_spectrogram(y[i], y_low[i], y_noisy[i],
-                                                y_recon[i], eps_error[i],
+            self.trainer.logger.log_spectrogram(wav[i], wav_noisy[i],
+                                                wav_recon[i], eps_error[i],
                                                 step[i].item(),
                                                 self.current_epoch)
-            self.trainer.logger.log_audio(wav[i], y_low[i], y_noisy[i],
-                                          y_recon[i], eps_error[i],
-                                          self.current_epoch)
-
-            
+            self.trainer.logger.log_audio(wav[i], wav_noisy[i],
+                                          wav_recon[i], self.current_epoch)
+            self.trainer.logger.log_alignment(alignment[i], self.current_epoch)
         return {
             'val_loss': loss,
         }
 
-    def test_step(self, batch, batch_nb):
-        wav, wav_l = batch
-        wav_up = self.sample(wav_l, self.hparams.ddpm.infer_step)
-        snr = self.snr(wav_up, wav)
-        base_snr = self.snr(wav_l, wav)
-        lsd = self.lsd(wav_up, wav)
-        base_lsd = self.lsd(wav_l, wav)
-        dict = {
-            'snr': snr,
-            'base_snr': base_snr,
-            'lsd': lsd,
-            'base_lsd': base_lsd,
-            'snr^2': snr.pow(2),
-            'base_snr^2': base_snr.pow(2),
-            'lsd^2': lsd.pow(2),
-            'base_lsd^2': base_lsd.pow(2)
-        }
-        if self.hparams.save:
-            swrite(
-                f'{self.hparams.log.test_result_dir}/test_{batch_nb}_up.wav',
-                self.hparams.audio.sr, wav_up[0].detach().cpu().numpy())
-            swrite(
-                f'{self.hparams.log.test_result_dir}/test_{batch_nb}_orig.wav',
-                self.hparams.audio.sr, wav[0].detach().cpu().numpy())
-            swrite(
-                f'{self.hparams.log.test_result_dir}/test_{batch_nb}_linear.wav',
-                self.hparams.audio.sr, wav_l[0].detach().cpu().numpy())
-            swrite(
-                f'{self.hparams.log.test_result_dir}/test_{batch_nb}_down.wav',
-                self.hparams.audio.sr // self.hparams.audio.ratio,
-                wav_l[0, ::self.hparams.audio.ratio].detach().cpu().numpy())
-
-        self.log_dict(dict)
-        return dict
-
-    def test_epoch_end(self, outputs):
-        lsd = torch.stack([x['lsd'] for x in outputs]).mean()
-        base_lsd = torch.stack([x['base_lsd'] for x in outputs]).mean()
-        snr = torch.stack([x['snr'] for x in outputs]).mean()
-        base_snr = torch.stack([x['base_snr'] for x in outputs]).mean()
-        dict = {
-            'snr': snr.item(),
-            'base_snr': base_snr.item(),
-            'lsd': lsd.item(),
-            'base_lsd': base_lsd.item(),
-        }
-        print(dict)
-        return
-
     def configure_optimizers(self):
-        opt = torch.optim.Adam(self.parameters(),
-                               lr=self.hparams.train.lr,
-                               eps=self.hparams.train.opt_eps,
-                               betas=(self.hparams.train.beta1,
-                                      self.hparams.train.beta2),
-                               weight_decay=self.hparams.train.weight_decay)
-        return opt
+        if self.warm_start:
+            learnable_params = self.speaker_embedding.parameters()
+        else:
+            learnable_params = self.parameters()
+        return torch.optim.Adam(
+            learnable_params,
+            lr=self.hparams.train.adam.lr,
+            weight_decay=self.hparams.train.adam.weight_decay,
+        )
+
+    # def lr_lambda(self, step):
+    #     progress = (step - self.hparams.train.decay.start) / (self.hparams.train.decay.end - self.hparams.train.decay.start)
+    #     return self.hparams.train.decay.rate ** np.clip(progress, 0.0, 1.0)
+    #
+    # def optimizer_step(self, epoch_nb, batch_nb, optimizer, optimizer_idx, second_order_closure, using_native_amp, using_lbfgs, on_tpu=False):
+    #     lr_scale = self.lr_lambda(self.global_step)
+    #     for pg in optimizer.param_groups:
+    #         pg['lr'] = lr_scale * self.hparams.train.adam.lr
+    #
+    #     optimizer.step()
+    #     optimizer.zero_grad()
+    #
+    #     self.trainer.logger.log_learning_rate(lr_scale * self.hparams.train.adam.lr, self.global_step)
 
     def train_dataloader(self):
-        return dataloader.create_vctk_dataloader(self.hparams, 0)
+        return dataloader.create_dataloader(self.hparams, 0)
 
     def val_dataloader(self):
-        return dataloader.create_vctk_dataloader(self.hparams, 1)
-
-    def test_dataloader(self):
-        return dataloader.create_vctk_dataloader(self.hparams, 2)
+        return dataloader.create_dataloader(self.hparams, 1)

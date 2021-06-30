@@ -1,4 +1,4 @@
-from lightning_model import NuWave
+from lightning_model import Wavegrad2
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from omegaconf import OmegaConf as OC
@@ -64,15 +64,15 @@ def train(args):
     hparams.name = f"{hparams.log.name}_{now}"
     os.makedirs(hparams.log.tensorboard_dir, exist_ok=True)
     os.makedirs(hparams.log.checkpoint_dir, exist_ok=True)
-    model = NuWave(hparams)
+    model = Wavegrad2(hparams)
     tblogger = TensorBoardLoggerExpanded(hparams)
     ckpt_path = f'{hparams.log.name}_{now}_{{epoch}}'
-    checkpoint_callback = ModelCheckpoint(filepath=os.path.join(
-        hparams.log.checkpoint_dir, ckpt_path),
+    checkpoint_callback = ModelCheckpoint(dirpath=hparams.log.checkpoint_dir,
+                                          filename=ckpt_path,
                                           verbose=True,
                                           save_last=True,
                                           save_top_k=3,
-                                          monitor='val_loss',
+                                          monitor='val/loss',
                                           mode='min',
                                           prefix='')
 
@@ -114,10 +114,10 @@ def train(args):
         max_epochs=200000,
         logger=tblogger,
         progress_bar_refresh_rate=4,
-        callbacks=[
-            EMACallback(os.path.join(hparams.log.checkpoint_dir, 
-                        f'{hparams.name}_epoch={{epoch}}_EMA'))
-                  ],
+        # callbacks=[
+        #     EMACallback(os.path.join(hparams.log.checkpoint_dir,
+        #                 f'{hparams.name}_epoch={{epoch}}_EMA'))
+        #           ],
         resume_from_checkpoint=None
         if args.resume_from == None or args.restart else sorted(
             glob(
