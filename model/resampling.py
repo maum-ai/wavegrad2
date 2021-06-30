@@ -26,7 +26,7 @@ class Resampling(nn.Module):
         upsampled, alignments = self.upsampling_layer(memory, target_duration, sigma, output_lengths, mask)
         # upsampled: [B, T, (chn.encoder + chn.speaker)], prev_attn: [B, N, T]
 
-        return upsampled.transpose(1,2), alignments, duration_s
+        return upsampled.transpose(1,2), alignments, duration_s, mask
 
     def inference(self, memory, max_decoder_steps, mel_chunk_size, pace):
         duration_s = self.get_duration.inference(memory) # [B, N]
