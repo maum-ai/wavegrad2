@@ -190,8 +190,9 @@ class Wavegrad2(pl.LightningModule):
         if text_encoding.dtype == torch.float16:
             speaker_emb = speaker_emb.half()
         decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
-        return self.teacher.inference(
-            decoder_input, prenet_dropout, attn_reset, max_decoder_steps, mel_chunk_size, pace)
+        hidden_rep, _ = self.resampling(decoder_input, pace=pace)
+        wav_recon = self.sample(hidden_rep, store_intermediate_states=False)
+        return wav_recon
 
     def training_step(self, batch, batch_idx):
         text, wav, duration_target, speakers, input_lengths, output_lengths, max_input_len = batch
