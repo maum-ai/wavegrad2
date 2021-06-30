@@ -101,9 +101,9 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
                                                y_recon.detach().cpu(), y_recon_allstep.detach().cpu()
 
 
-        name_list = ['y', 'y_noisy', 'y_recon', 'y_recon_allstep']
-
-        for n, yy in zip(name_list, [y, y_noisy, y_recon, y_recon_allstep]):
+        # name_list = ['y', 'y_noisy', 'y_recon', 'y_recon_allstep']
+        name_list = ['y', 'y_noisy', 'y_recon']
+        for n, yy in zip(name_list, [y, y_noisy, y_recon]):
             self.experiment.add_audio(n,
                                       yy, epoch, self.hparam.audio.sampling_rate)
         

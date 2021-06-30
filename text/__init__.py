@@ -1,6 +1,6 @@
 import re
-from . import cleaners
-from .symbols import eng_symbols, cmu_symbols, kor_symbols, cht_symbols, jap_romaji_symbols, jap_kana_symbols
+from text import cleaners
+from text.symbols import eng_symbols, cmu_symbols, kor_symbols, cht_symbols, jap_romaji_symbols, jap_kana_symbols
 
 
 # Refer to https://pms.maum.ai/confluence/x/hJgjAg for list of symbol sets
@@ -102,7 +102,7 @@ class Language():
   def _symbols_to_sequence(self, symbols):
     if self._lang == 'jap':
       symbols = symbols.split('-')
-    return [self._symbol_to_id[s] for s in symbols.split('/') if self._should_keep_symbol(s)]
+    return [self._symbol_to_id[s] for s in symbols if self._should_keep_symbol(s)]
 
   def _arpabet_to_sequence(self, text):
     return self._symbols_to_sequence(['@' + s for s in text.split()])

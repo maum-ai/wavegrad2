@@ -13,14 +13,13 @@ train:
     dur: 2.0
 
 data:
-  lang: 'kor'
-  text_cleaners: ['korean_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
-  speakers: ['kss', 'KVA_W', 'KVA_M', 'lec01', 'ma', 'fa', 'SDS', 'agent', 'care', 'president', 'soojin', 'CWWFEMALE_CONVERSATION', 'CWWFEMALE_FAIRY', 'CWWFEMALE_INFORMATION', 'CWWFEMALE_NOVEL', 'CWWFEMALE_SPEECH', 'CWWMALE_CONVERSATION', 'CWWMALE_FAIRY', 'CWWMALE_INFORMATION', 'CWWMALE_NOVEL', 'CWWMALE_SPEECH', 'YJH', 'JIS', 'KSH', 'KANE_NORMAL', 'KANE_ANGRY'] # speaker 수는 1명일 때 works well
-  train_dir: '/DATA1/hansw/non_attentive/preprocessed_data/Baseline26/'
+  lang: 'eng'
+  text_cleaners: ['english_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
+  speakers: ['LJSpeech']
+  train_dir: 'preprocessed_data/LJSpeech'
   train_meta: 'train.txt'  # relative path of metadata file from train_dir
-  val_dir: '/DATA1/hansw/non_attentive/preprocessed_data/Baseline26/'
+  val_dir: 'preprocessed_data/LJSpeech'
   val_meta: 'val.txt'  # relative path of metadata file from val_dir'
-  rawdata_dir: '/DATA1/hansw/non_attentive/raw_data/Baseline26/'
 
 audio:
   sampling_rate: 22050

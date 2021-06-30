@@ -8,8 +8,8 @@ import random
 import numpy as np
 from omegaconf import OmegaConf
 
-from datasets.text import Language
-from datasets import dataloader
+from text import Language
+import dataloader
 from utils.tblogger import TensorBoardLoggerExpanded
 from model.encoder import TextEncoder
 from model.resampling import Resampling

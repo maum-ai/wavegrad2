@@ -4,7 +4,7 @@ _pad = '<pad>'
 _eos = '</s>'
 _sos = '<s>'
 _punc = list('!\'(),-.:~? ')
-_SILENCES = ['sp', 'spn', 'sil']
+_SILENCES = ['@sp', '@spn', '@sil']
 
 _eng_characters = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
 
@@ -60,9 +60,9 @@ _jap_kana_characters = [
 
 ## English
 # eng, eng2 (use arpabet WITH stress)
-eng_symbols = [_pad, _eos] + _eng_characters + _punc + _arpabet + [_sos]
+eng_symbols = [_pad, _eos] + _eng_characters + _punc + _arpabet + _SILENCES + [_sos]
 # cmu (use arpabet WITHOUT stress)
-cmu_symbols = [_pad, _eos] + _eng_characters + _punc + _cmu_characters + [_sos]
+cmu_symbols = [_pad, _eos] + _eng_characters + _punc + _cmu_characters + _SILENCES + [_sos]
 
 ## Korean
 # kor
