@@ -12,7 +12,6 @@ class Resampling(nn.Module):
     def __init__(self, hparams):
         super().__init__()
         self.hparams = hparams
-        self.n_mel_channels = hparams.audio.n_mel_channels
         self.get_duration = GetDuration(hparams.chn.encoder + hparams.chn.speaker, hparams.chn.dur_lstm)
         self.get_range = GetRange(hparams.chn.encoder + hparams.chn.speaker + 1, hparams.chn.range_lstm)
         self.upsampling_layer = Upsampling()
@@ -28,7 +27,7 @@ class Resampling(nn.Module):
 
         return upsampled.transpose(1,2), alignments, duration_s, mask
 
-    def inference(self, memory, max_decoder_steps, mel_chunk_size, pace):
+    def inference(self, memory, pace):
         duration_s = self.get_duration.inference(memory) # [B, N]
         duration_s = duration_s * pace
         duration = torch.round(duration_s * (self.hparams.audio.sampling_rate / self.hparams.audio.hop_length))
