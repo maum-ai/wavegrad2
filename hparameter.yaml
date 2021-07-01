@@ -67,7 +67,7 @@ arch:
 
 ddpm:
   max_step: 1000
-  noise_schedule: "torch.linspace(1e-6, 0.006, hparams.ddpm.max_step)"
+  noise_schedule: "torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)"
   pos_emb_scale: 50000
   pos_emb_channels: 128 
   infer_step: 8

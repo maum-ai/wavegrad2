@@ -36,6 +36,8 @@ class TextEncoder(nn.Module):
         x, _ = nn.utils.rnn.pad_packed_sequence(
             x, batch_first=True)
 
+        x = F.dropout(x, 0.5, self.training)
+
         return x
 
     def inference(self, x):
