@@ -17,7 +17,7 @@ class TextAudioDataset(Dataset):
     def __init__(self, hparams, data_dir, metadata_path, train=True):
         super().__init__()
         self.hparams = hparams
-        self.lang = Language(hparams.data.lang, hparams.data.text_cleaners, use_eos=False)
+        self.lang = Language(hparams.data.lang, hparams.data.text_cleaners)
         self.train = train
         self.data_dir = data_dir
         metadata_path = os.path.join(data_dir, metadata_path)
