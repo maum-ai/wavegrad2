@@ -24,14 +24,14 @@ class WaveGradNN(BaseModule):
         # Building upsampling branch (mels -> signal)
         self.hparams = hparams
         self.ublock_preconv = Conv1dWithInitialization(
-            in_channels=hparams.arch.encode_channel,
-            out_channels=hparams.arch.upsample.preconv_channel,
+            in_channels=hparams.wavegrad.encode_channel,
+            out_channels=hparams.wavegrad.upsample.preconv_channel,
             kernel_size=3,
             stride=1,
             padding=1
         )
-        upsampling_in_sizes = [hparams.arch.upsample.preconv_channel] \
-            + hparams.arch.upsample.out_channels[:-1]
+        upsampling_in_sizes = [hparams.wavegrad.upsample.preconv_channel] \
+            + hparams.wavegrad.upsample.out_channels[:-1]
         self.ublocks = torch.nn.ModuleList([
             UBlock(
                 in_channels=in_size,
@@ -40,13 +40,13 @@ class WaveGradNN(BaseModule):
                 dilations=dilations
             ) for in_size, out_size, factor, dilations in zip(
                 upsampling_in_sizes,
-                hparams.arch.upsample.out_channels,
-                hparams.arch.scale_factors,
-                hparams.arch.upsample.dilations
+                hparams.wavegrad.upsample.out_channels,
+                hparams.wavegrad.scale_factors,
+                hparams.wavegrad.upsample.dilations
             )
         ])
         self.ublock_postconv = Conv1dWithInitialization(
-            in_channels=hparams.arch.upsample.out_channels[-1],
+            in_channels=hparams.wavegrad.upsample.out_channels[-1],
             out_channels=1,
             kernel_size=3,
             stride=1,
@@ -56,13 +56,13 @@ class WaveGradNN(BaseModule):
         # Building downsampling branch (starting from signal)
         self.dblock_preconv = Conv1dWithInitialization(
             in_channels=1,
-            out_channels=hparams.arch.downsample.preconv_channel,
+            out_channels=hparams.wavegrad.downsample.preconv_channel,
             kernel_size=5,
             stride=1,
             padding=2
         )
-        downsampling_in_sizes = [hparams.arch.downsample.preconv_channel] \
-            + hparams.arch.downsample.out_channels[:-1]
+        downsampling_in_sizes = [hparams.wavegrad.downsample.preconv_channel] \
+            + hparams.wavegrad.downsample.out_channels[:-1]
         self.dblocks = torch.nn.ModuleList([
             DBlock(
                 in_channels=in_size,
@@ -71,16 +71,16 @@ class WaveGradNN(BaseModule):
                 dilations=dilations
             ) for in_size, out_size, factor, dilations in zip(
                 downsampling_in_sizes,
-                hparams.arch.downsample.out_channels,
-                hparams.arch.scale_factors[1:][::-1],
-                hparams.arch.downsample.dilations
+                hparams.wavegrad.downsample.out_channels,
+                hparams.wavegrad.scale_factors[1:][::-1],
+                hparams.wavegrad.downsample.dilations
             )
         ])
 
         # Building FiLM connections (in order of downscaling stream)
-        film_in_sizes = [32] + list(hparams.arch.downsample.out_channels)
-        film_out_sizes = hparams.arch.upsample.out_channels[::-1]
-        film_factors = [1] + hparams.arch.scale_factors[1:][::-1]
+        film_in_sizes = [32] + list(hparams.wavegrad.downsample.out_channels)
+        film_out_sizes = hparams.wavegrad.upsample.out_channels[::-1]
+        film_factors = [1] + hparams.wavegrad.scale_factors[1:][::-1]
         self.films = torch.nn.ModuleList([
             FiLM(
                 in_channels=in_size,

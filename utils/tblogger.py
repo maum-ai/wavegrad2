@@ -19,7 +19,7 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
                 default_hp_metric= False)
         self.hparam = hparam
         self.log_hyperparams(hparam)
-        
+
         self.stftmag = STFTMag()
 
     def fig2np(self, fig):

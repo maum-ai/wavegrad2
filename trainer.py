@@ -110,7 +110,7 @@ def train(args):
         amp_level='O2',  #
         #num_sanity_val_steps = -1,
         check_val_every_n_epoch=10,
-        gradient_clip_val = 0.5,
+        gradient_clip_val = 1.0,
         max_epochs=200000,
         logger=tblogger,
         progress_bar_refresh_rate=4,

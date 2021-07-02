@@ -3,13 +3,12 @@ from . import cmudict
 _pad = '<pad>'
 _punc = list('!\'(),-.:~? ')
 _SILENCES = ['sp', 'spn', 'sil']
-
 _eng_characters = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
 
 # arpabet WITH stress
 # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
 _arpabet = ['@' + s for s in cmudict.valid_symbols]
-_a_silences = ["@" + s for s in _silences]
+_a_silences = ['@' + s for s in _SILENCES]
 
 # arpabet WITHOUT stress
 _cmu_characters = [
@@ -59,20 +58,20 @@ _jap_kana_characters = [
 
 ## English
 # eng, eng2 (use arpabet WITH stress)
-eng_symbols = _pad + _eng_characters + _punc + _arpabet + _a_silences
+eng_symbols = [_pad] + _eng_characters + _punc + _arpabet + _a_silences
 # cmu (use arpabet WITHOUT stress)
-cmu_symbols = _pad + _eng_characters + _punc + _cmu_characters + _a_silences
+cmu_symbols = [_pad] + _eng_characters + _punc + _cmu_characters + _a_silences
 
 ## Korean
 # kor
-kor_symbols = _pad + _kor_characters + _punc + _SILENCES + list(_jamo_trashes)
+kor_symbols = [_pad] + _kor_characters + _punc + _SILENCES + list(_jamo_trashes)
 
 # Chinese
 # cht
-cht_symbols = _pad + _cht_characters + _punc
+cht_symbols = [_pad] + _cht_characters + _punc
 
 # Japanese
 # jap, jap_romaji
-jap_romaji_symbols = _pad + _jap_romaji_characters + _punc
+jap_romaji_symbols = [_pad] + _jap_romaji_characters + _punc
 # jap_kana
-jap_kana_symbols = _pad + _jap_kana_characters + _punc
+jap_kana_symbols = [_pad] + _jap_kana_characters + _punc
