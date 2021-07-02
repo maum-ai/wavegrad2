@@ -62,6 +62,10 @@ if __name__ == '__main__':
                         type=str,
                         default='LJSpeech',
                         help="speaker name")
+    parser.add_argument('--pace',
+                        type=int,
+                        default=1.0,
+                        help="control the pace of the whole utterance")
     parser.add_argument('--steps',
                         type=int,
                         required=False,
@@ -96,7 +100,7 @@ if __name__ == '__main__':
     text = text.cuda()
     spk_id = spk_id.cuda()
 
-    wav_recon, align = model.inference(text, spk_id, pace=1.1)
+    wav_recon, align = model.inference(text, spk_id, pace=args.pace)
 
     save_stft_mag(wav_recon, os.path.join(hparams.log.test_result_dir, f'{args.text}.png'))
     swrite(os.path.join(hparams.log.test_result_dir, f'{args.text}.wav'),
