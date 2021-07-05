@@ -37,7 +37,7 @@ class TextEncoder(nn.Module):
         x, _ = nn.utils.rnn.pad_packed_sequence(
             x, batch_first=True)
 
-        x = F.dropout(x, self.dropout_rate, self.training)
+        #x = F.dropout(x, self.dropout_rate, self.training)
 
         return x
 
