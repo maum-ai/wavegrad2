@@ -32,7 +32,8 @@ class Wavegrad2(pl.LightningModule):
         self.window = Window(hparams)
         self.decoder = WaveGradNN(hparams)
         self.filter_ratio = [1. / hparams.audio.ratio]
-        self.norm = nn.L1Loss()  # loss
+        self.norm = nn.L1Loss()
+        self.mse_loss = nn.MSELoss()
 
         self.set_noise_schedule(hparams, train)
 
@@ -158,22 +159,27 @@ class Wavegrad2(pl.LightningModule):
         speaker_emb = self.speaker_embedding(speakers)  # [B, chn.speaker]
         speaker_emb = speaker_emb.unsqueeze(1).expand(-1, text_encoding.size(1), -1)  # [B, N, chn.speaker]
         decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
-        hidden_rep, alignment, duration = \
+        hidden_rep, alignment, duration, mask = \
             self.resampling(decoder_input, duration_target, input_lengths, output_lengths, no_mask)
         wav_sliced, hidden_rep_sliced = self.window(wav, hidden_rep, output_lengths)
         eps = torch.randn_like(wav_sliced, device=wav.device)
         wav_noisy_sliced = self.q_sample(wav_sliced, noise_level=noise_level, eps=eps)
         eps_recon = self.decoder(wav_noisy_sliced, hidden_rep_sliced, noise_level)
-        return eps_recon, eps, wav_sliced, wav_noisy_sliced, hidden_rep_sliced, alignment, duration
+        return eps_recon, eps, wav_sliced, wav_noisy_sliced, hidden_rep_sliced, alignment, duration, mask
 
     def common_step(self, text, wav, duration_target, speakers, input_lengths, output_lengths, step, no_mask=False):
         noise_level = self.sample_continuous_noise_level(step) \
             if self.training \
             else self.sqrt_alphas_cumprod_prev[step].unsqueeze(-1)
-        eps_recon, eps, wav_sliced, wav_noisy_sliced, hidden_rep_sliced, alignment, duration = \
+        eps_recon, eps, wav_sliced, wav_noisy_sliced, hidden_rep_sliced, alignment, duration, mask = \
             self(text, wav, duration_target, speakers, input_lengths, output_lengths, noise_level)
         noise_loss = self.norm(eps_recon, eps)
-        duration_loss = F.mse_loss(duration, duration_target / (self.hparams.audio.sampling_rate / self.hparams.window.scale))
+
+        mask = ~mask
+        duration = duration.masked_select(mask)
+        duration_target = duration_target.masked_select(mask)
+        duration_loss = self.mse_loss(duration, duration_target / (self.hparams.audio.sampling_rate / self.hparams.window.scale))
+
         loss = noise_loss + self.hparams.train.loss_rate.dur * duration_loss
         return loss, noise_loss, duration_loss, wav_sliced, wav_noisy_sliced, eps, eps_recon, hidden_rep_sliced, alignment
 
@@ -184,8 +190,9 @@ class Wavegrad2(pl.LightningModule):
         if text_encoding.dtype == torch.float16:
             speaker_emb = speaker_emb.half()
         decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
-        return self.teacher.inference(
-            decoder_input, prenet_dropout, attn_reset, max_decoder_steps, mel_chunk_size, pace)
+        hidden_rep, _ = self.resampling(decoder_input, pace=pace)
+        wav_recon = self.sample(hidden_rep, store_intermediate_states=False)
+        return wav_recon
 
     def training_step(self, batch, batch_idx):
         text, wav, duration_target, speakers, input_lengths, output_lengths, max_input_len = batch
