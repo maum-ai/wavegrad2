@@ -24,7 +24,8 @@ class Wavegrad2(pl.LightningModule):
         self.scale = hparams.window.scale
         self.symbols = Language(hparams.data.lang, hparams.data.text_cleaners).get_symbols()
         self.symbols = ['"{}"'.format(symbol) for symbol in self.symbols]
-        self.encoder = TextEncoder(hparams.encoder.channel, hparams.encoder.kernel, hparams.encoder.depth, len(self.symbols))
+        self.encoder = TextEncoder(hparams.encoder.channel, hparams.encoder.kernel, hparams.encoder.depth,
+                                   hparams.encoder.dropout_rate, len(self.symbols))
         self.speaker_embedding = nn.Embedding(len(hparams.data.speakers), hparams.encoder.speaker_emb)
         self.resampling = Resampling(hparams)
 

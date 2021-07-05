@@ -34,6 +34,7 @@ encoder:
   channel: 512
   kernel: 5
   depth: 3
+  dropout_rate: 0.5
   speaker_emb: 64
 
 dur_predictor:

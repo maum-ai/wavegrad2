@@ -5,8 +5,9 @@ import time
 
 
 class TextEncoder(nn.Module):
-    def __init__(self, channels, kernel_size, depth, n_symbols):
+    def __init__(self, channels, kernel_size, depth, dropout_rate, n_symbols):
         super().__init__()
+        self.dropout_rate = dropout_rate
         self.embedding = nn.Embedding(n_symbols, channels)
         padding = (kernel_size - 1) // 2
         self.cnn = list()
@@ -15,7 +16,7 @@ class TextEncoder(nn.Module):
                 nn.Conv1d(channels, channels, kernel_size=kernel_size, padding=padding),
                 nn.BatchNorm1d(channels),
                 nn.ReLU(),
-                nn.Dropout(0.5),
+                nn.Dropout(dropout_rate),
             ))
         self.cnn = nn.Sequential(*self.cnn)
 
@@ -36,7 +37,7 @@ class TextEncoder(nn.Module):
         x, _ = nn.utils.rnn.pad_packed_sequence(
             x, batch_first=True)
 
-        x = F.dropout(x, 0.5, self.training)
+        x = F.dropout(x, self.dropout_rate, self.training)
 
         return x
 
