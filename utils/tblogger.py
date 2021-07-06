@@ -19,7 +19,7 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
                 default_hp_metric= False)
         self.hparam = hparam
         self.log_hyperparams(hparam)
-        
+
         self.stftmag = STFTMag()
 
     def fig2np(self, fig):
@@ -100,13 +100,12 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
         y, y_noisy, y_recon, y_recon_allstep = y.detach().cpu(), y_noisy.detach().cpu(), \
                                                y_recon.detach().cpu(), y_recon_allstep.detach().cpu()
 
-
         name_list = ['y', 'y_noisy', 'y_recon', 'y_recon_allstep']
 
         for n, yy in zip(name_list, [y, y_noisy, y_recon, y_recon_allstep]):
             self.experiment.add_audio(n,
                                       yy, epoch, self.hparam.audio.sampling_rate)
-        
+
         self.experiment.flush()
         return
 

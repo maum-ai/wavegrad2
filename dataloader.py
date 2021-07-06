@@ -1,121 +1,138 @@
-from os import path
-from torch.utils.data import Dataset, DataLoader
-from glob import glob
+import os
+import re
 import torch
-from prefetch_generator import BackgroundGenerator
 import random
-from filters import LowPass
+import librosa
+import numpy as np
+import time
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
+from collections import Counter
 
-class DataLoader_back(DataLoader):
-    def __init__(self, *args, **kwargs):
-        super(DataLoader_back, self).__init__(*args, **kwargs)
-        if 'num_workers' in kwargs:
-            self.num_workers = kwargs['num_workers']
-            print('num_workers: ', self.num_workers)
-        else:
-            self.num_workers = 1
-
-    def __iter__(self):
-        return BackgroundGenerator(super().__iter__(),
-                                   max_prefetch=self.num_workers // 4)
+from text import Language
+from text.cmudict import CMUDict
 
 
-def create_vctk_dataloader(hparams, cv):
-    def collate_fn(batch):
-        wav_list = list()
-        wav_l_list = list()
-        for wav, wav_l in batch:
-            wav_list.append(wav)
-            wav_l_list.append(wav_l)
-        wav_list = torch.stack(wav_list, dim=0).squeeze(1)
-        wav_l_list = torch.stack(wav_l_list, dim=0).squeeze(1)
-
-        return wav_list, wav_l_list
-
-    if cv==0:
-        return DataLoader_back(dataset=VCTKMultiSpkDataset(hparams, cv),
-                               batch_size=hparams.train.batch_size,
-                               shuffle=True,
-                               num_workers=hparams.train.num_workers,
-                               collate_fn=collate_fn,
-                               pin_memory=True,
-                               drop_last=True,
-                               sampler=None)
-    else:
-        return DataLoader_back(dataset=VCTKMultiSpkDataset(hparams, cv),
-                               collate_fn=collate_fn,
-                               batch_size=hparams.train.batch_size if cv==1 else 1,
-                               drop_last=True if cv==1 else False,
-                               shuffle=False,
-                               num_workers=hparams.train.num_workers)
-
-
-class VCTKMultiSpkDataset(Dataset):
-    def __init__(self, hparams, cv=0):  #cv 0: train, 1: val, 2: test
-        def _get_datalist(folder, file_format, spk_list, cv):
-            _dl = []
-            len_spk_list = len(spk_list)
-            s=0
-            print(f'full speakers {len_spk_list}')
-            for i, spk in enumerate(spk_list):
-                if cv==0:
-                    if not(i<int(len_spk_list*self.cv_ratio[0])): continue
-                elif cv==1:
-                    if not(int(len_spk_list*self.cv_ratio[0])<=i and
-                            i<=int(len_spk_list*(self.cv_ratio[0]+self.cv_ratio[1]) )):
-                        continue
-                else:
-                    if not(int(len_spk_list*self.cv_ratio[0])<=i and
-                            i<=int(len_spk_list*(self.cv_ratio[0]+self.cv_ratio[1]) )):
-                        continue
-                _full_spk_dl = sorted(glob(path.join(spk, file_format)))
-                _len = len(_full_spk_dl)
-                if (_len == 0): continue
-                s+=1    
-                _dl.extend(_full_spk_dl)
-            
-            print(cv, s)
-            return _dl
-
-        def _get_spk(folder):
-            return sorted(glob(path.join(folder, '*')))#[1:])
-        
+class TextAudioDataset(Dataset):
+    def __init__(self, hparams, data_dir, metadata_path, train=True):
+        super().__init__()
         self.hparams = hparams
-        self.cv = cv
-        self.cv_ratio = eval(hparams.data.cv_ratio)
-        self.directory = hparams.data.dir
-        self.dataformat = hparams.data.format
-        self.data_list = _get_datalist(self.directory, self.dataformat,
-                                       _get_spk(self.directory), self.cv)
+        self.lang = Language(hparams.data.lang, hparams.data.text_cleaners)
+        self.train = train
+        self.data_dir = data_dir
+        metadata_path = os.path.join(data_dir, metadata_path)
+        self.meta = self.load_metadata(metadata_path)
+        self.speaker_dict = {speaker: idx for idx, speaker in enumerate(hparams.data.speakers)}
 
-        self.filter_ratio = [1./hparams.audio.ratio]
-        self.lowpass = LowPass(hparams.audio.nfft,
-                               hparams.audio.hop,
-                               ratio=self.filter_ratio)
-        self.upsample = torch.nn.Upsample(scale_factor=hparams.audio.ratio,
-                                          mode ='linear',
-                                          align_corners = False)
-        assert len(self.data_list) != 0, "no data found"
+        if train:
+            # balanced sampling for each speaker
+            speaker_counter = Counter((spk_id \
+                                       for basename, spk_id, text, raw_text in self.meta))
+            weights = [1.0 / speaker_counter[spk_id] \
+                       for basename, spk_id, text, raw_text in self.meta]
+
+            self.mapping_weights = torch.DoubleTensor(weights)
+
+        if hparams.data.lang == 'eng2':
+            self.cmudict = CMUDict(hparams.data.cmudict_path)
+            self.cmu_pattern = re.compile(r'^(?P<word>[^!\'(),-.:~?]+)(?P<punc>[!\'(),-.:~?]+)$')
 
     def __len__(self):
-        return len(self.data_list)
+        return len(self.meta)
 
-    def __getitem__(self, index):
-        wav = torch.load(self.data_list[index])
-        wav /= wav.abs().max()
-        if wav.shape[0] < self.hparams.audio.length:
-            padl = self.hparams.audio.length - wav.shape[0]
-            r = random.randint(0, padl) if self.cv<2 else padl//2
-            wav = torch.nn.functional.pad(wav, (r, padl-r), 'constant', 0)
+    def __getitem__(self, idx):
+        if self.train:
+            idx = torch.multinomial(self.mapping_weights, 1).item()
+
+        basename, spk_id, text, raw_text = self.meta[idx]
+        audio_path = os.path.join(self.data_dir, 'wav', '{}-wav-{}.wav'.format(spk_id, basename))
+        wav, _ = librosa.load(audio_path, self.hparams.audio.sample_rate)
+        wav = torch.from_numpy(wav)
+        text_norm = self.get_text(text)
+        dur_path = os.path.join(self.data_dir, 'duration', '{}-duration-{}.npy'.format(spk_id, basename))
+        duration = np.load(dur_path)
+        duration = torch.from_numpy(duration)
+        spk_id = self.speaker_dict[spk_id]
+        return text_norm, wav, duration.float(), spk_id
+
+    def get_text(self, text):
+        # if lang='eng2', then use representation mixing. (arXiv:1811.07240)
+        # i.e., randomly apply CMUDict-based English g2p to whole sentence.
+        # note that lang='eng2' will use arpabet WITH stress.
+        if self.hparams.data.lang == 'eng2' and random.random() < 0.5:
+            text = ' '.join([self.get_arpabet(word) for word in text.split(' ')])
+        text_norm = torch.LongTensor(self.lang.text_to_sequence(text, self.hparams.data.text_cleaners))
+        return text_norm
+
+    def get_arpabet(self, word):
+        arpabet = self.cmudict.lookup(word)
+        if arpabet is None:
+            match = self.cmu_pattern.search(word)
+            if match is None:
+                return word
+            subword = match.group('word')
+            arpabet = self.cmudict.lookup(subword)
+            if arpabet is None:
+                return word
+            punc = match.group('punc')
+            arpabet = '{%s}%s' % (arpabet[0], punc)
         else:
-            start = random.randint(0, wav.shape[0] - self.hparams.audio.length)
-            wav = wav[start:start+self.hparams.audio.length] if self.cv<2 \
-                    else wav[:len(wav)-len(wav)%self.hparams.audio.ratio]
-        wav *= random.random()/2+0.5 if self.cv<2 else 1
+            arpabet = '{%s}' % arpabet[0]
 
-        wav_l = self.lowpass(wav, 0)
-        wav_l = wav_l[0,::self.hparams.audio.ratio].view(1,1,-1)
-        #or
-        #wav_l = rosa.resample(wav, hparams.audio.sr, hparams.audio.sr//hparams.audio.ratio)
-        wav_l = self.upsample(wav_l).view(1,-1)
-        return wav, wav_l
+        if random.random() < 0.5:
+            return word
+        else:
+            return arpabet
+
+    def load_metadata(self, path, split="|"):
+        metadata = []
+        with open(path, 'r', encoding='utf-8') as f:
+            for line in f:
+                stripped = line.strip().split(split)
+                if self.hparams.train.fine_tuning and stripped[2] != self.hparams.train.tuning_speaker:
+                    continue
+                metadata.append(stripped)
+
+        return metadata
+
+
+def create_dataloader(hparams, cv):
+    def collate_fn(batch):
+        input_lengths, ids_sorted_decreasing = torch.sort(
+            torch.LongTensor([len(x[0]) for x in batch]),
+            dim=0, descending=True)
+        max_input_len = torch.empty(len(batch), dtype=torch.long)
+        max_input_len.fill_(input_lengths[0])
+
+        text_padded = torch.zeros((len(batch), max_input_len[0]), dtype=torch.long)
+        max_target_len = max([x[1].size(0) for x in batch])
+        max_target_len = max_target_len + (hparams.window.scale - max_target_len % hparams.window.scale)
+
+        wav_padded = torch.zeros(len(batch), max_target_len)
+        output_lengths = torch.empty(len(batch), dtype=torch.long)
+        speakers = torch.empty(len(batch), dtype=torch.long)
+
+        duration_padded = torch.zeros((len(batch), max_input_len[0]), dtype=torch.long)
+
+        for idx, key in enumerate(ids_sorted_decreasing):
+            text = batch[key][0]
+            text_padded[idx, :text.size(0)] = text
+            wav = batch[key][1]
+            wav_padded[idx, :wav.size(0)] = wav
+            duration = batch[key][2]
+            duration_padded[idx, :duration.size(0)] = duration
+            output_lengths[idx] = wav.size(0) // hparams.window.scale
+            speakers[idx] = batch[key][3]
+
+        return text_padded, wav_padded, duration_padded, speakers, \
+               input_lengths, output_lengths, max_input_len
+    if cv == 0:
+        trainset = TextAudioDataset(hparams, hparams.data.train_dir, hparams.data.train_meta, train=True)
+        return DataLoader(trainset, batch_size=hparams.train.batch_size, shuffle=True,
+                          num_workers=hparams.train.num_workers,
+                          collate_fn=collate_fn, pin_memory=True, drop_last=False)
+    else:
+        valset = TextAudioDataset(hparams, hparams.data.val_dir, hparams.data.val_meta, train=False)
+        return DataLoader(valset, batch_size=hparams.train.batch_size, shuffle=False,
+                          num_workers=hparams.train.num_workers,
+                          collate_fn=collate_fn, pin_memory=False, drop_last=False)

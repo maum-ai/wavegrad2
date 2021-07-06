@@ -12,8 +12,8 @@ class Resampling(nn.Module):
     def __init__(self, hparams):
         super().__init__()
         self.hparams = hparams
-        self.get_duration = GetDuration(hparams.chn.encoder + hparams.chn.speaker, hparams.chn.dur_lstm)
-        self.get_range = GetRange(hparams.chn.encoder + hparams.chn.speaker + 1, hparams.chn.range_lstm)
+        self.get_duration = GetDuration(hparams.encoder.channel + hparams.encoder.speaker_emb, hparams.dur_predictor.dur_lstm_channel)
+        self.get_range = GetRange(hparams.encoder.channel + hparams.encoder.speaker_emb + 1, hparams.dur_predictor.range_lstm_channel)
         self.upsampling_layer = Upsampling()
 
     def forward(self, memory, target_duration, memory_lengths, output_lengths, no_mask=False):
@@ -23,22 +23,22 @@ class Resampling(nn.Module):
         sigma = self.get_range(memory, target_duration, mask, memory_lengths)  # [B, N]
 
         upsampled, alignments = self.upsampling_layer(memory, target_duration, sigma, output_lengths, mask)
-        # upsampled: [B, T, (chn.encoder + chn.speaker)], prev_attn: [B, N, T]
+        # upsampled: [B, T, (chn.encoder + chn.speaker)], alignments: [B, N, T]
 
         return upsampled.transpose(1,2), alignments, duration_s, mask
 
     def inference(self, memory, pace):
         duration_s = self.get_duration.inference(memory) # [B, N]
         duration_s = duration_s * pace
-        duration = torch.round(duration_s * (self.hparams.audio.sampling_rate / self.hparams.audio.hop_length))
+        duration = torch.round(duration_s * (self.hparams.audio.sampling_rate / self.hparams.window.scale))
         sigma = self.get_range.inference(memory, duration)  # [B, N]
 
         output_len = int(torch.sum(duration, dim=-1).detach())
 
-        upsampled, alignments = self.upsampling_layer(memory, duration, sigma, output_len, mask=None)
-        # upsampled: [B, T, (chn.encoder + chn.speaker)], prev_attn: [B, N, T]
+        upsampled, alignments = self.upsampling_layer(memory, duration, sigma, torch.tensor([output_len]), mask=None)
+        # upsampled: [B, T, (chn.encoder + chn.speaker)], alignments: [B, N, T]
 
-        return upsampled, alignments
+        return upsampled.transpose(1,2), alignments
 
     def get_mask_from_lengths(self, lengths, max_len=None):
         if max_len is None:

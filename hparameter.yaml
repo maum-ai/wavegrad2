@@ -1,65 +1,58 @@
 train:
   batch_size: 32
   adam:
-    lr: 2.2e-4 # baseline 학습/warm start 시에는 1e-3
+    lr: 3e-4
     weight_decay: 1e-6
   decay:
-    rate: 0.1
-    start: 5000
-    end: 20000
+    rate: 0.05
+    start: 25000
+    end: 50000
   num_workers: 16
   gpus: 2 #ddp
   loss_rate:
-    dur: 2.0
+    dur: 1.0
 
 data:
-  lang: 'kor'
-  text_cleaners: ['korean_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
-  speakers: ['kss', 'KVA_W', 'KVA_M', 'lec01', 'ma', 'fa', 'SDS', 'agent', 'care', 'president', 'soojin', 'CWWFEMALE_CONVERSATION', 'CWWFEMALE_FAIRY', 'CWWFEMALE_INFORMATION', 'CWWFEMALE_NOVEL', 'CWWFEMALE_SPEECH', 'CWWMALE_CONVERSATION', 'CWWMALE_FAIRY', 'CWWMALE_INFORMATION', 'CWWMALE_NOVEL', 'CWWMALE_SPEECH', 'YJH', 'JIS', 'KSH', 'KANE_NORMAL', 'KANE_ANGRY'] # speaker 수는 1명일 때 works well
-  train_dir: '/DATA1/hansw/non_attentive/preprocessed_data/Baseline26/'
+  lang: 'eng'
+  text_cleaners: ['english_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
+  speakers: ['LJSpeech']
+  train_dir: 'preprocessed_data/LJSpeech'
   train_meta: 'train.txt'  # relative path of metadata file from train_dir
-  val_dir: '/DATA1/hansw/non_attentive/preprocessed_data/Baseline26/'
+  val_dir: 'preprocessed_data/LJSpeech'
   val_meta: 'val.txt'  # relative path of metadata file from val_dir'
-  rawdata_dir: '/DATA1/hansw/non_attentive/raw_data/Baseline26/'
 
 audio:
+  n_mel_channels: 80
+  filter_length: 1024
+  hop_length: 256
+  win_length: 1024
   sampling_rate: 22050
-  nfft: 1024
-  hop: 256
-  ratio: 2 #upscale_ratio
-  length: 32768 #32*1024 ~ 1sec
+  mel_fmin: 0.0
+  mel_fmax: 8000.0
 
-chn:
-  encoder: 512
-  speaker: 64
-  # decoder
-  prenet: 256
-  postnet: 512
-  attention_rnn: 1024
-  attention: 128
-  decoder_rnn: 1024
-  ### NON-ATTENTIVE ###
-  dur_lstm: 512
-  range_lstm: 512
-ker:
-  encoder: 5
-  postnet: 5
-depth:
-  encoder: 3
-  prenet: 2
-  postnet: 5
+encoder:
+  channel: 512
+  kernel: 5
+  depth: 3
+  dropout_rate: 0.5
+  speaker_emb: 64
+
+dur_predictor:
+  dur_lstm_channel: 512
+  range_lstm_channel: 512  
 
 window:
   scale: 300
   length: 64
 
-arch:
-  encode_channel: 576 ##need to check
+wavegrad:
+  encode_channel: 576 ##512+64
   scale_factors: [5,5,3,2,2]
   upsample:
     preconv_channel: 768
     out_channels: [512, 512, 256, 128, 128]
-    dilations: [[1,2,1,2],[1,2,1,2],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
+    #dilations: [[1,2,1,2],[1,2,1,2],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
+    dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,1,2],[1,2,1,2]]
   downsample:
     preconv_channel: 32
     out_channels: [128, 128, 256, 512]
@@ -68,7 +61,7 @@ arch:
 
 ddpm:
   max_step: 1000
-  noise_schedule: "torch.linspace(1e-6, 0.006, hparams.ddpm.max_step)"
+  noise_schedule: "torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)"
   pos_emb_scale: 50000
   pos_emb_channels: 128 
   infer_step: 8

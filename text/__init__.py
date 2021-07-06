@@ -1,14 +1,13 @@
 import re
-from . import cleaners
-from .symbols import eng_symbols, cmu_symbols, kor_symbols, cht_symbols, jap_romaji_symbols, jap_kana_symbols
+from text import cleaners
+from text.symbols import eng_symbols, cmu_symbols, kor_symbols, cht_symbols, jap_romaji_symbols, jap_kana_symbols
 
 
 # Refer to https://pms.maum.ai/confluence/x/hJgjAg for list of symbol sets
 class Language():
-  def __init__(self, lang, text_cleaners, use_eos=True):
+  def __init__(self, lang, text_cleaners):
     # Regular expression matching text enclosed in curly braces:
     self._curly_re = re.compile(r'(.*?)\{(.+?)\}(.*)')
-    self._use_eos = use_eos
 
     if lang == 'kor':
       available_cleaners = ['korean_cleaners']
@@ -34,8 +33,6 @@ class Language():
       symbols = jap_kana_symbols
     else:
       raise RuntimeError('Wrong type of lang')
-    if not use_eos:
-      symbols = symbols[:-1]
     for text_cleaner in text_cleaners:
       if text_cleaner not in available_cleaners:
         raise RuntimeError(
@@ -69,13 +66,11 @@ class Language():
     while len(text):
       m = self._curly_re.match(text) if self._lang in ('eng', 'eng2', 'cmu') else None
       if not m:  
-        sequence += self._symbols_to_sequence(self._clean_text(text, cleaner_names))
+        sequence += self._symbols_to_sequence(self._clean_text(m.group(1), cleaner_names))
         break
       sequence += self._symbols_to_sequence(self._clean_text(m.group(1), cleaner_names))
       sequence += self._arpabet_to_sequence(m.group(2))
       text = m.group(3)
-    if self._use_eos:
-      sequence = [self._symbol_to_id['<s>']] + sequence +[self._symbol_to_id['</s>']]
     return sequence
 
   def sequence_to_text(self, sequence):
@@ -102,7 +97,7 @@ class Language():
   def _symbols_to_sequence(self, symbols):
     if self._lang == 'jap':
       symbols = symbols.split('-')
-    return [self._symbol_to_id[s] for s in symbols.split('/') if self._should_keep_symbol(s)]
+    return [self._symbol_to_id[s] for s in symbols if self._should_keep_symbol(s)]
 
   def _arpabet_to_sequence(self, text):
     return self._symbols_to_sequence(['@' + s for s in text.split()])

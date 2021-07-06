@@ -30,7 +30,7 @@ class GetDuration(nn.Module):
         x = x.squeeze(-1)  # [B, N]
 
         if mask is not None:
-            x.data.masked_fill_(mask, 0.0)
+            x = x.masked_fill(mask, 0.0)
 
         return x
 
@@ -74,8 +74,10 @@ class GetRange(nn.Module):
         x = self.fc(x)  # [B, N, 1]
         x = x.squeeze(-1)  # [B, N]
 
+        x = torch.clamp(x, min=1e-6)
+
         if mask is not None:
-            x.data.masked_fill_(mask, 1e-8)
+            x = x.masked_fill(mask, 1e-6)
 
         return x
 
@@ -114,7 +116,7 @@ class Upsampling(nn.Module):
         alignment = self.get_alignment_energies(gaussian, frames)  # [B, N, T]
 
         if mask is not None:
-            alignment.data.masked_fill_(mask.unsqueeze(-1), self.score_mask_value)
+            alignment = alignment.masked_fill(mask.unsqueeze(-1), self.score_mask_value)
 
         attn_weights = alignment / (torch.sum(alignment, dim=1).unsqueeze(1) + 1e-8)  # [B, N, T]
         upsampled = torch.bmm(attn_weights.transpose(1, 2), memory)

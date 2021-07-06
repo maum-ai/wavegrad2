@@ -1,0 +1,17 @@
+dataset: 'LJSpeech'
+
+path:
+  corpus_path: '/DATA1/minds/resources/tts/LJSpeech-1.1'
+  lexicon_path: 'lexicon/librispeech-lexicon.txt'
+  raw_path: './raw_data/LJSpeech'
+  preprocessed_path: './preprocessed_data/LJSpeech'
+
+preprocessing:
+  val_size: 512
+  text:
+    text_cleaners: ['english_cleaners']
+    lang: 'eng'
+  audio:
+    sampling_rate: 22050
+    max_wav_value: 32768.0
+    scale: 300
