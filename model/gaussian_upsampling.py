@@ -74,8 +74,10 @@ class GetRange(nn.Module):
         x = self.fc(x)  # [B, N, 1]
         x = x.squeeze(-1)  # [B, N]
 
+        x = torch.clamp(x, min=1e-6)
+
         if mask is not None:
-            x = x.masked_fill(mask, 1e-8)
+            x = x.masked_fill(mask, 1e-6)
 
         return x
 

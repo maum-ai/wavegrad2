@@ -145,7 +145,7 @@ class Wavegrad2(pl.LightningModule):
         ys = [y_t]
         t = start_step - 1
         while t >= 0:
-            y_t = self.compute_inverse_dynamincs(y_t, hidden_rep, t)
+            y_t = self.compute_inverse_dynamincs(y_t, hidden_rep, t, clip_denoised=True)
             ys.append(y_t)
             t -= 1
         return ys if store_intermediate_states else ys[-1]
