@@ -5,17 +5,52 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 
 ##TODO
 - [ ] MT + SpecAug
-
+- [ ] Zoneout LSTM
 
 ## Requirements
 - [Pytorch](https://pytorch.org/) 
 - [Pytorch-Lightning](https://github.com/PyTorchLightning/pytorch-lightning)==1.2.10
 - The requirements are highlighted in [requirements.txt](./requirements.txt).<br>
 - We also provide docker setup [Dockerfile](./Dockerfile).<br>
+## Datasets
 
+The supported datasets are
 
+- [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
+- etc.
+
+We take LJSpeech as an example hereafter.
 ## Preprocessing
+ 
+First, run 
+```
+python3 prepare_align.py config/LJSpeech/preprocess.yaml
+```
+for some preparations.
 
+As described in the paper, [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) (MFA) is used to obtain the alignments between the utterances and the phoneme sequences.
+Alignments for the LJSpeech and AISHELL-3 datasets are provided [here](https://drive.google.com/drive/folders/1DBRkALpPd6FL9gjHMmMEdHODmkgNIIK4?usp=sharing).
+You have to unzip the files in ``preprocessed_data/LJSpeech/TextGrid/``.
+
+After that, run the preprocessing script by
+```
+python3 preprocess.py config/LJSpeech/preprocess.yaml
+```
+
+Alternately, you can align the corpus by yourself. 
+Download the official MFA package and run
+```
+./montreal-forced-aligner/bin/mfa_align raw_data/LJSpeech/ lexicon/librispeech-lexicon.txt english preprocessed_data/LJSpeech
+```
+or
+```
+./montreal-forced-aligner/bin/mfa_train_and_align raw_data/LJSpeech/ lexicon/librispeech-lexicon.txt preprocessed_data/LJSpeech
+```
+
+to align the corpus and then run the preprocessing script.
+```
+python3 preprocess.py config/LJSpeech/preprocess.yaml
+```
 ## Training
 - run `trainer.py`
 ```shell script
