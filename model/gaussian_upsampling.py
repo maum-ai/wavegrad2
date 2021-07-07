@@ -107,7 +107,7 @@ class Upsampling(nn.Module):
         frames = torch.arange(0, torch.max(output_lengths), device=memory.device)
         frames = frames.unsqueeze(0).unsqueeze(1)  # frames define again
 
-        center = torch.cumsum(duration, dim=-1) - duration // 2
+        center = torch.cumsum(duration, dim=-1).float() - 0.5 * duration
         # sigma = torch.ones_like(sigma, device=sigma.device) * 10
         # if mask is not None:
         #     sigma = sigma.masked_fill(mask, 1e-6)
