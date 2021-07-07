@@ -1,4 +1,4 @@
-#This code is from
+#This code is adopted from
 #https://github.com/ivanvovk/WaveGrad
 import numpy as np
 
@@ -86,6 +86,7 @@ class WaveGradNN(BaseModule):
                 in_channels=in_size,
                 out_channels=out_size,
                 input_dscaled_by=np.product(film_factors[:i+1])  # for proper positional encodings initialization
+                linear_scale=hparams.ddpm.pos_emb_scale
             ) for i, (in_size, out_size) in enumerate(
                 zip(film_in_sizes, film_out_sizes)
             )

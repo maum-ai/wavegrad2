@@ -5,7 +5,6 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 
 ##TODO
 - [ ] MT + SpecAug
-- [ ] Inference by Colab
 
 
 ## Requirements
@@ -45,6 +44,6 @@ This implementation uses code from following repositories:
 - [ivanvovk's WaveGrad Pytorch Implementation](https://github.com/ivanvovk/WaveGrad)
 - [lmnt-com's DiffWave Pytorch Implementation](https://github.com/lmnt-com/diffwave)
 - [ming024's FastSpeech2 Pytorch Implementation](https://github.com/ming024/FastSpeech2)
-- [yanggeng's EATS Pytorch Implementation](https://github.com/yanggeng1995/EATS)
+- [yanggeng1996's EATS Pytorch Implementation](https://github.com/yanggeng1995/EATS)
 - [mindslab's NU-Wave](https://github.com/mindslab-ai/nuwave)
 
