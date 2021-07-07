@@ -1,4 +1,4 @@
-#This code is from
+#This code is adopted from
 #https://github.com/ivanvovk/WaveGrad
 import numpy as np
 

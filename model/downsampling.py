@@ -1,4 +1,4 @@
-#This code is form
+#This code is adopted from
 #https://github.com/ivanvovk/WaveGrad
 import torch
 
