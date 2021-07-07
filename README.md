@@ -17,6 +17,7 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 The supported datasets are
 
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
+- [AISHELL-3](http://www.aishelltech.com/aishell_3): a Mandarin TTS dataset with 218 male and female speakers, roughly 85 hours in total.
 - etc.
 
 We take LJSpeech as an example hereafter.
@@ -24,7 +25,7 @@ We take LJSpeech as an example hereafter.
  
 First, run 
 ```
-python3 prepare_align.py config/LJSpeech/preprocess.yaml
+python prepare_align.py -c preprocess.yaml
 ```
 for some preparations.
 
@@ -34,7 +35,7 @@ You have to unzip the files in ``preprocessed_data/LJSpeech/TextGrid/``.
 
 After that, run the preprocessing script by
 ```
-python3 preprocess.py config/LJSpeech/preprocess.yaml
+python preprocess.py -c preprocess.yaml
 ```
 
 Alternately, you can align the corpus by yourself. 
@@ -49,7 +50,7 @@ or
 
 to align the corpus and then run the preprocessing script.
 ```
-python3 preprocess.py config/LJSpeech/preprocess.yaml
+python preprocess.py -c preprocess.yaml
 ```
 ## Training
 - run `trainer.py`
