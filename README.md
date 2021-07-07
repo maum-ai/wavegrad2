@@ -5,7 +5,6 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 
 ##TODO
 - [ ] MT + SpecAug
-- [ ] Inference by Colab
 
 
 ## Requirements
