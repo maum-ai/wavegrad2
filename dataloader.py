@@ -1,3 +1,5 @@
+#This code is adopted from
+#https://github.com/NVIDIA/tacotron2
 import os
 import re
 import torch

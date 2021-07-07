@@ -44,6 +44,8 @@ This implementation uses code from following repositories:
 - [ivanvovk's WaveGrad Pytorch Implementation](https://github.com/ivanvovk/WaveGrad)
 - [lmnt-com's DiffWave Pytorch Implementation](https://github.com/lmnt-com/diffwave)
 - [ming024's FastSpeech2 Pytorch Implementation](https://github.com/ming024/FastSpeech2)
-- [yanggeng1996's EATS Pytorch Implementation](https://github.com/yanggeng1995/EATS)
+- [yanggeng1995's EATS Pytorch Implementation](https://github.com/yanggeng1995/EATS)
 - [mindslab's NU-Wave](https://github.com/mindslab-ai/nuwave)
+- [Keith Ito's Tacotron implementation](https://github.com/keithito/tacotron)
+- [NVIDIA's Tacotron2 implementation](https://github.com/NVIDIA/tacotron2)
 

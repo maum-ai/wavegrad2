@@ -1,4 +1,5 @@
-""" from https://github.com/keithito/tacotron """
+#This code is from
+#https://github.com/keithito/tacotron
 
 import re
 
