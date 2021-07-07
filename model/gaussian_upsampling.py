@@ -17,14 +17,14 @@ class GetDuration(nn.Module):
 
     def forward(self, x, mask, input_lengths):
         # x: [B, N, (chn.encoder + chn.speaker)]
-        # input_lengths = input_lengths.cpu().numpy()
-        # x = nn.utils.rnn.pack_padded_sequence(
-        #     x, input_lengths, batch_first=True)
-        #
+        input_lengths = input_lengths.cpu().numpy()
+        x = nn.utils.rnn.pack_padded_sequence(
+            x, input_lengths, batch_first=True)
+
         self.lstm.flatten_parameters()
         x, _ = self.lstm(x)  # [B, N, channels]
-        # x, _ = nn.utils.rnn.pad_packed_sequence(
-        #     x, batch_first=True)
+        x, _ = nn.utils.rnn.pad_packed_sequence(
+            x, batch_first=True)
 
         x = self.fc(x)  # [B, N, 1]
         x = x.squeeze(-1)  # [B, N]
@@ -62,22 +62,20 @@ class GetRange(nn.Module):
         x = torch.cat((x, duration.unsqueeze(-1)), dim=-1)
         # [B, N, (chn.encoder + chn.speaker) + 1]
 
-        # input_lengths = input_lengths.cpu().numpy()
-        # x = nn.utils.rnn.pack_padded_sequence(
-        #     x, input_lengths, batch_first=True)
+        input_lengths = input_lengths.cpu().numpy()
+        x = nn.utils.rnn.pack_padded_sequence(
+            x, input_lengths, batch_first=True)
 
         self.lstm.flatten_parameters()
         x, _ = self.lstm(x)  # [B, N, channels]
-        # x, _ = nn.utils.rnn.pad_packed_sequence(
-        #     x, batch_first=True)
+        x, _ = nn.utils.rnn.pad_packed_sequence(
+            x, batch_first=True)
 
         x = self.fc(x)  # [B, N, 1]
         x = x.squeeze(-1)  # [B, N]
 
-        x = torch.clamp(x, min=1e-6)
-
         if mask is not None:
-            x = x.masked_fill(mask, 1e-6)
+            x = x.masked_fill(mask, 1e-8)
 
         return x
 
@@ -106,15 +104,18 @@ class Upsampling(nn.Module):
         return energies
 
     def forward(self, memory, duration, sigma, output_lengths, mask):
-        frames = torch.arange(0, torch.max(output_lengths) + 1, device=memory.device)
+        frames = torch.arange(0, torch.max(output_lengths), device=memory.device)
         frames = frames.unsqueeze(0).unsqueeze(1)  # frames define again
 
         center = torch.cumsum(duration, dim=-1) - duration // 2
+        # sigma = torch.ones_like(sigma, device=sigma.device) * 10
+        # if mask is not None:
+        #     sigma = sigma.masked_fill(mask, 1e-6)
         center, sigma = center.unsqueeze(-1), sigma.unsqueeze(-1)
+
         gaussian = torch.distributions.normal.Normal(loc=center, scale=sigma)
 
         alignment = self.get_alignment_energies(gaussian, frames)  # [B, N, T]
-
         if mask is not None:
             alignment = alignment.masked_fill(mask.unsqueeze(-1), self.score_mask_value)
 
