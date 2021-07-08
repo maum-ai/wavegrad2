@@ -62,7 +62,7 @@ $ python trainer.py
 ```shell script
 $ tensorboard --logdir=./tensorboard --bind_all
 ```
-## Evaluation
+## Inference
 
 ## Author
 This code is implemented by
