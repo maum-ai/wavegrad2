@@ -1,3 +1,5 @@
+#This code is adopted from
+#https://github.com/ming024/FastSpeech2
 import argparse
 
 from omegaconf import OmegaConf as OC
@@ -9,10 +11,6 @@ def main(args):
     hparams = OC.load(args.config)
     if "LJSpeech" in hparams.dataset:
         ljspeech.prepare_align(hparams)
-    # if "AISHELL3" in config["dataset"]:
-    #     aishell3.prepare_align(config)
-    # if "LibriTTS" in config["dataset"]:
-    #     libritts.prepare_align(config)
 
 
 if __name__ == "__main__":

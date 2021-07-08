@@ -1,5 +1,3 @@
-# This code is inspired by
-# https://github.com/yanggeng1995/EATS
 import math
 import numpy as np
 import torch

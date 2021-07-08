@@ -1,3 +1,5 @@
+#This code is adopted from
+#https://github.com/ming024/FastSpeech2
 import os
 
 import librosa

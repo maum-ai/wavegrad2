@@ -1,4 +1,5 @@
-""" from https://github.com/keithito/tacotron """
+#This code is from
+#https://github.com/keithito/tacotron
 
 '''
 Cleaners are transformations that run over the input text at both training and eval time.

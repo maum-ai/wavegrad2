@@ -1,3 +1,5 @@
+#This code is adopted from
+#https://github.com/keithito/tacotron
 from . import cmudict
 
 _pad = '<pad>'
@@ -8,6 +10,7 @@ _eng_characters = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
 # arpabet WITH stress
 # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
 _arpabet = ['@' + s for s in cmudict.valid_symbols]
+
 _a_silences = ['@' + s for s in _SILENCES]
 
 # arpabet WITHOUT stress
@@ -52,9 +55,6 @@ _jap_kana_characters = [
      'よ', 'ら', 'り', 'る', 'れ', 'ろ', 'わ', 'を', 'ん', 'ゔ',
      'ー'
 ]
-
-# Export all symbols:
-# refer to https://pms.maum.ai/confluence/x/hJgjAg for list of symbol sets.
 
 ## English
 # eng, eng2 (use arpabet WITH stress)

@@ -8,8 +8,6 @@ from model.base import BaseModule
 from model.layers import Conv1dWithInitialization
 
 
-
-
 class PositionalEncoding(BaseModule):
     def __init__(self, n_channels, linear_scale):
         super(PositionalEncoding, self).__init__()

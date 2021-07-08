@@ -1,9 +1,10 @@
+#This code is adopted from
+#https://github.com/keithito/tacotron
 import re
 from text import cleaners
 from text.symbols import eng_symbols, cmu_symbols, kor_symbols, cht_symbols, jap_romaji_symbols, jap_kana_symbols
 
 
-# Refer to https://pms.maum.ai/confluence/x/hJgjAg for list of symbol sets
 class Language():
   def __init__(self, lang, text_cleaners):
     # Regular expression matching text enclosed in curly braces:
