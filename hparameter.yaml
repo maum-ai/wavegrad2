@@ -1,5 +1,5 @@
 train:
-  batch_size: 32
+  batch_size: 12
   adam:
     lr: 3e-4
     weight_decay: 1e-6
@@ -43,7 +43,7 @@ dur_predictor:
 
 window:
   scale: 300
-  length: 64
+  length: 256
 
 wavegrad:
   encode_channel: 576 ##512+64
@@ -62,7 +62,7 @@ wavegrad:
 ddpm:
   max_step: 1000
   noise_schedule: "torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)"
-  pos_emb_scale: 50000
+  pos_emb_scale: 5000
   pos_emb_channels: 128 
   infer_step: 8
   infer_schedule: "torch.tensor([1e-6,2e-6,1e-5,1e-4,1e-3,1e-2,1e-1,9e-1])"

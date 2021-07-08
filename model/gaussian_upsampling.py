@@ -3,10 +3,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from scipy.special import gamma
-import math
 
-class GetDuration(nn.Module):
+
+class DurationPredictor(nn.Module):
     def __init__(self, input_dim, channels):
         super().__init__()
 
@@ -46,7 +45,7 @@ class GetDuration(nn.Module):
         return x
 
 
-class GetRange(nn.Module):
+class RangeParameterPredictor(nn.Module):
     def __init__(self, input_dim, channels):
         super().__init__()
 
@@ -94,7 +93,7 @@ class GetRange(nn.Module):
         return x
 
 
-class Upsampling(nn.Module):
+class GaussianUpsampling(nn.Module):
     def __init__(self):
         super().__init__()
         self.score_mask_value = 0.0
@@ -105,17 +104,15 @@ class Upsampling(nn.Module):
 
     def forward(self, memory, duration, sigma, output_lengths, mask):
         frames = torch.arange(0, torch.max(output_lengths), device=memory.device)
-        frames = frames.unsqueeze(0).unsqueeze(1)  # frames define again
+        frames = frames.unsqueeze(0).unsqueeze(1)
 
         center = torch.cumsum(duration, dim=-1).float() - 0.5 * duration
-        # sigma = torch.ones_like(sigma, device=sigma.device) * 10
-        # if mask is not None:
-        #     sigma = sigma.masked_fill(mask, 1e-6)
         center, sigma = center.unsqueeze(-1), sigma.unsqueeze(-1)
 
         gaussian = torch.distributions.normal.Normal(loc=center, scale=sigma)
 
         alignment = self.get_alignment_energies(gaussian, frames)  # [B, N, T]
+
         if mask is not None:
             alignment = alignment.masked_fill(mask.unsqueeze(-1), self.score_mask_value)
 

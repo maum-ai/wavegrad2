@@ -186,9 +186,9 @@ class Wavegrad2(pl.LightningModule):
         if text_encoding.dtype == torch.float16:
             speaker_emb = speaker_emb.half()
         decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
-        hidden_rep, alignment = self.resampling.inference(decoder_input, pace=pace)
+        hidden_rep, alignment, duration, sigma = self.resampling.inference(decoder_input, pace=pace)
         wav_recon = self.sample(hidden_rep, store_intermediate_states=False)
-        return wav_recon, alignment
+        return wav_recon, alignment, duration, sigma
 
     def training_step(self, batch, batch_idx):
         text, wav, duration_target, speakers, input_lengths, output_lengths, max_input_len = batch
@@ -222,12 +222,11 @@ class Wavegrad2(pl.LightningModule):
             hidden_rep_i = hidden_rep[i].unsqueeze(0)
             wav_recon_allstep = self.sample(hidden_rep_i, store_intermediate_states=False)
             self.trainer.logger.log_spectrogram(wav[i], wav_noisy[i],
-                                                wav_recon[i], eps_error[i], wav_recon_allstep[0],
+                                                wav_recon[i], eps_error[i], wav_recon_allstep[0], alignment[i],
                                                 step[i].item(),
                                                 self.current_epoch)
             self.trainer.logger.log_audio(wav[i], wav_noisy[i],
                                           wav_recon[i], wav_recon_allstep[0], self.current_epoch)
-            self.trainer.logger.log_alignment(alignment[i], self.current_epoch)
 
         return {
             'val_loss': loss,
