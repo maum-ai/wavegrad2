@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class GetDuration(nn.Module):
+class DurationPredictor(nn.Module):
     def __init__(self, input_dim, channels):
         super().__init__()
 
@@ -45,7 +45,7 @@ class GetDuration(nn.Module):
         return x
 
 
-class GetRange(nn.Module):
+class RangeParameterPredictor(nn.Module):
     def __init__(self, input_dim, channels):
         super().__init__()
 
@@ -93,7 +93,7 @@ class GetRange(nn.Module):
         return x
 
 
-class Upsampling(nn.Module):
+class GaussianUpsampling(nn.Module):
     def __init__(self):
         super().__init__()
         self.score_mask_value = 0.0
@@ -115,7 +115,7 @@ class Upsampling(nn.Module):
         gaussian = torch.distributions.normal.Normal(loc=center, scale=sigma)
 
         alignment = self.get_alignment_energies(gaussian, frames)  # [B, N, T]
-        
+
         if mask is not None:
             alignment = alignment.masked_fill(mask.unsqueeze(-1), self.score_mask_value)
 
