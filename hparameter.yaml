@@ -1,5 +1,5 @@
 train:
-  batch_size: 32
+  batch_size: 12
   adam:
     lr: 3e-4
     weight_decay: 1e-6
@@ -43,7 +43,7 @@ dur_predictor:
 
 window:
   scale: 300
-  length: 64
+  length: 256
 
 wavegrad:
   encode_channel: 576 ##512+64

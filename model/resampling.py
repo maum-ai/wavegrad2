@@ -38,7 +38,7 @@ class Resampling(nn.Module):
         upsampled, alignments = self.upsampling_layer(memory, duration, sigma, torch.tensor([output_len]), mask=None)
         # upsampled: [B, T, (chn.encoder + chn.speaker)], alignments: [B, N, T]
 
-        return upsampled.transpose(1,2), alignments
+        return upsampled.transpose(1,2), alignments, duration, sigma
 
     def get_mask_from_lengths(self, lengths, max_len=None):
         if max_len is None:
