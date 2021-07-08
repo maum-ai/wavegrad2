@@ -222,12 +222,11 @@ class Wavegrad2(pl.LightningModule):
             hidden_rep_i = hidden_rep[i].unsqueeze(0)
             wav_recon_allstep = self.sample(hidden_rep_i, store_intermediate_states=False)
             self.trainer.logger.log_spectrogram(wav[i], wav_noisy[i],
-                                                wav_recon[i], eps_error[i], wav_recon_allstep[0],
+                                                wav_recon[i], eps_error[i], wav_recon_allstep[0], alignment[i],
                                                 step[i].item(),
                                                 self.current_epoch)
             self.trainer.logger.log_audio(wav[i], wav_noisy[i],
                                           wav_recon[i], wav_recon_allstep[0], self.current_epoch)
-            self.trainer.logger.log_alignment(alignment[i], self.current_epoch)
 
         return {
             'val_loss': loss,

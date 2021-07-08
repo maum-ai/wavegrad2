@@ -13,5 +13,5 @@ preprocessing:
     lang: 'eng'
   audio:
     sampling_rate: 22050
-    max_wav_value: 32768.0
+    max_wav_value: 32767.0
     scale: 300

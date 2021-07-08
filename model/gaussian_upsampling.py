@@ -107,9 +107,6 @@ class GaussianUpsampling(nn.Module):
         frames = frames.unsqueeze(0).unsqueeze(1)
 
         center = torch.cumsum(duration, dim=-1).float() - 0.5 * duration
-        # sigma = torch.ones_like(sigma, device=sigma.device) * 10
-        # if mask is not None:
-        #     sigma = sigma.masked_fill(mask, 1e-6)
         center, sigma = center.unsqueeze(-1), sigma.unsqueeze(-1)
 
         gaussian = torch.distributions.normal.Normal(loc=center, scale=sigma)
