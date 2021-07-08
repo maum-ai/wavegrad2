@@ -6,7 +6,7 @@ train:
   decay:
     rate: 0.05
     start: 25000
-    end: 50000
+    end: 100000
   num_workers: 16
   gpus: 2 #ddp
   loss_rate:
