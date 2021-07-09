@@ -3,7 +3,7 @@
 **WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis**<br>
 Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-lightning) Implementation of Chen *et al.*(JHU, Google Brain), [WaveGrad2](https://arxiv.org/abs/2106.09660).<br>
 
-##TODO
+## TODO
 - [ ] MT + SpecAug
 - [ ] WaveGrad-Large Decoder
 - [ ] Sample pages
