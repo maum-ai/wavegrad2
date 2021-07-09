@@ -90,6 +90,7 @@ data:
   train_meta: 'train.txt'  # relative path of metadata file from train_dir
   val_dir: 'preprocessed_data/LJSpeech'
   val_meta: 'val.txt'  # relative path of metadata file from val_dir'
+  lexicon_path: 'lexicon/librispeech-lexicon.txt'
 ```
 
 - run `trainer.py`
