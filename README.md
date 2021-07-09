@@ -5,7 +5,7 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 
 ##TODO
 - [ ] MT + SpecAug
-- [ ] Zoneout LSTM
+- [ ] WaveGrad-Large Decoder
 - [ ] Sample pages
 - [ ] Checkpoint release
 
@@ -111,6 +111,11 @@ python inference.py --text ' '
 - Or you can run `wavegrad2_tester.ipynb`.
 
 **Checkpoint file will be released!**
+
+## Note
+Since this repo is unofficial implementation and WaveGrad2 paper did not provided several details, slight difference between paper could be exist.   
+- Normal LSTM without ZoneOut is applied 
+- etc.
 
 ## Author
 This code is implemented by
