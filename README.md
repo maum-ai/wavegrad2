@@ -116,6 +116,66 @@ python inference.py --text ' '
 Since this repo is unofficial implementation and WaveGrad2 paper did not provided several details, slight difference between paper could be exist.   
 - Normal LSTM without ZoneOut is applied 
 - etc.
+## Tree
+```
+.
+├── Dockerfile
+├── README.md
+├── dataloader.py
+├── datasets
+│   ├── __pycache__
+│   │   ├── __init__.cpython-36.pyc
+│   │   ├── dataloader.cpython-36.pyc
+│   │   └── text_mel_dataset.cpython-36.pyc
+│   └── text
+│       └── __pycache__
+│           ├── __init__.cpython-36.pyc
+│           ├── cleaners.cpython-36.pyc
+│           ├── cmudict.cpython-36.pyc
+│           ├── numbers.cpython-36.pyc
+│           └── symbols.cpython-36.pyc
+├── docs
+│   ├── spec.png
+│   ├── tb.png
+│   └── tblogger.png
+├── hparameter.yaml
+├── inference.py
+├── lexicon
+│   ├── librispeech-lexicon.txt
+│   └── pinyin-lexicon-r.txt
+├── lightning_model.py
+├── model
+│   ├── base.py
+│   ├── downsampling.py
+│   ├── encoder.py
+│   ├── gaussian_upsampling.py
+│   ├── interpolation.py
+│   ├── layers.py
+│   ├── linear_modulation.py
+│   ├── nn.py
+│   ├── resampling.py
+│   ├── upsampling.py
+│   └── window.py
+├── prepare_align.py
+├── preprocess.py
+├── preprocess.yaml
+├── preprocessor
+│   ├── ljspeech.py
+│   └── preprocessor.py
+├── text
+│   ├── __init__.py
+│   ├── cleaners.py
+│   ├── cmudict.py
+│   ├── numbers.py
+│   └── symbols.py
+├── trainer.py
+├── utils
+│   ├── mel.py
+│   ├── stft.py
+│   ├── tblogger.py
+│   └── utils.py
+└── wavegrad2_tester.ipynb
+```
 
 ## Author
 This code is implemented by
