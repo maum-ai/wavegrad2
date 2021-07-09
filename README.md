@@ -64,8 +64,7 @@ $ python trainer.py
 ```shell script
 $ tensorboard --logdir=./tensorboard --bind_all
 ```
-![](./docs/tblogger.png)
-![](./docs/spec.png)
+![](./docs/tb.png)
 
 ## Inference
 **Checkpoint file will be released!**
