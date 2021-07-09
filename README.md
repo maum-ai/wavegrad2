@@ -24,37 +24,73 @@ The supported datasets are
 
 We take LJSpeech as an example hereafter.
 ## Preprocessing
- 
-First, run 
-```
+- Adjust `preprocess.yaml`, especially `path` section.
+```shell script
+path:
+  corpus_path: '/DATA1/LJSpeech-1.1' # LJSpeech corpus path
+  lexicon_path: 'lexicon/librispeech-lexicon.txt'
+  raw_path: './raw_data/LJSpeech'
+  preprocessed_path: './preprocessed_data/LJSpeech'
+``` 
+
+- Run `prepare_align.py` for some preparations. 
+```shell script
 python prepare_align.py -c preprocess.yaml
 ```
-for some preparations.
 
-As described in the paper, [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) (MFA) is used to obtain the alignments between the utterances and the phoneme sequences.
+- [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) (MFA) is used to obtain the alignments between the utterances and the phoneme sequences.
 Alignments for the LJSpeech and AISHELL-3 datasets are provided [here](https://drive.google.com/drive/folders/1DBRkALpPd6FL9gjHMmMEdHODmkgNIIK4?usp=sharing).
 You have to unzip the files in ``preprocessed_data/LJSpeech/TextGrid/``.
 
-After that, run the preprocessing script by
-```
+- After that, run `preprocess.py`.
+```shell script
 python preprocess.py -c preprocess.yaml
 ```
 
-Alternately, you can align the corpus by yourself. 
-Download the official MFA package and run
-```
+- Alternately, you can align the corpus by yourself. 
+- Download the official MFA package and run it to align the corpus.
+```shell script
 ./montreal-forced-aligner/bin/mfa_align raw_data/LJSpeech/ lexicon/librispeech-lexicon.txt english preprocessed_data/LJSpeech
 ```
 or
-```
+```shell script
 ./montreal-forced-aligner/bin/mfa_train_and_align raw_data/LJSpeech/ lexicon/librispeech-lexicon.txt preprocessed_data/LJSpeech
 ```
 
-to align the corpus and then run the preprocessing script.
-```
+- And then run `preprocess.py`.
+```shell script
 python preprocess.py -c preprocess.yaml
 ```
 ## Training
+- Adjust `hparameter.yaml`, especially `train` section.
+```shell script
+train:
+  batch_size: 12 # Dependent on GPU memory size
+  adam:
+    lr: 3e-4
+    weight_decay: 1e-6
+  decay:
+    rate: 0.05
+    start: 25000
+    end: 100000
+  num_workers: 16 # Dependent on CPU cores
+  gpus: 2 # number of GPUs
+  loss_rate:
+    dur: 1.0
+```
+
+- If you want to train with other dataset, adjust `data` section in `hparameter.yaml`
+```shell script
+data:
+  lang: 'eng'
+  text_cleaners: ['english_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
+  speakers: ['LJSpeech']
+  train_dir: 'preprocessed_data/LJSpeech'
+  train_meta: 'train.txt'  # relative path of metadata file from train_dir
+  val_dir: 'preprocessed_data/LJSpeech'
+  val_meta: 'val.txt'  # relative path of metadata file from val_dir'
+```
+
 - run `trainer.py`
 ```shell script
 $ python trainer.py
@@ -67,6 +103,13 @@ $ tensorboard --logdir=./tensorboard --bind_all
 ![](./docs/tb.png)
 
 ## Inference
+- run `inference.py`
+```shell script
+python inference.py --text ' '
+```
+
+- Or you can run `wavegrad2_tester.ipynb`.
+
 **Checkpoint file will be released!**
 
 ## Author
