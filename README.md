@@ -6,7 +6,7 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 ## TODO
 - [ ] MT + SpecAug
 - [ ] WaveGrad-Large Decoder
-- [ ] inference by reduced sampling steps
+- [ ] Inference by reduced sampling steps
 - [ ] Sample pages
 - [ ] Checkpoint release
 
@@ -114,16 +114,20 @@ python inference.py --text ' '
 **Checkpoint file will be released!**
 
 ## Note
-Since this repo is unofficial implementation and WaveGrad2 paper did not provided several details, slight difference between paper could be exist.  
+Since this repo is unofficial implementation and WaveGrad2 paper do not provide several details, a slight differences between paper could exist.  
 We listed modifications or arbitrary setups
 - Normal LSTM without ZoneOut is applied for encoder. 
+- [g2p\_en](https://github.com/Kyubyong/g2p) is applied instead of Google's unknown G2P.
+- Trained with LJSpeech datasdet instead of Google's proprietary dataset.
+  - Due to dataset replacement, output audio's sampling rate becomes 22.05kHz instead of 24kHz.
 - hyperparameters
-  - `train.batch_size: 12` by 2 A100 (40GB) GPUs
+  - `train.batch_size: 12` for 2 A100 (40GB) GPUs
   - `train.adam.lr: 3e-4` and `train.adam.weight_decay: 1e-6`
-  - learning rate decay
+  - `train.decay` learning rate decay is applied during training
+  - `train.loss_rate: 1` as `total_loss = 1 * L1_loss + 1 * duration_loss`
   - `ddpm.ddpm_noise_schedule: torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)`
-  - `total_loss = 1 * L1_loss + 1 * duration_loss`
-- etc.
+- *TODO* things.
+
 ## Tree
 ```
 .
@@ -175,8 +179,8 @@ We listed modifications or arbitrary setups
 
 ## Author
 This code is implemented by
-- Seungu Han at mindslab [hansw0326@mindslab.ai](mailto:hansw0326@mindslab.ai)
-- Junhyeok Lee at mindslab [jun3518@mindslab.ai](mailto:jun3518@mindslab.ai)
+- Seungu Han at MINDs Lab [hansw0326@mindslab.ai](mailto:hansw0326@mindslab.ai)
+- Junhyeok Lee at MINDs Lab [jun3518@mindslab.ai](mailto:jun3518@mindslab.ai)
 
 ## References
 - Chen *et al.*, [WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis](https://arxiv.org/abs/2106.09660)
@@ -190,6 +194,7 @@ This implementation uses code from following repositories:
 - [lmnt-com's DiffWave Pytorch Implementation](https://github.com/lmnt-com/diffwave)
 - [ming024's FastSpeech2 Pytorch Implementation](https://github.com/ming024/FastSpeech2)
 - [yanggeng1995's EATS Pytorch Implementation](https://github.com/yanggeng1995/EATS)
+- [Kyubyoung's g2p\_en](https://github.com/Kyubyong/g2p)
 - [mindslab's NU-Wave](https://github.com/mindslab-ai/nuwave)
 - [Keith Ito's Tacotron implementation](https://github.com/keithito/tacotron)
 - [NVIDIA's Tacotron2 implementation](https://github.com/NVIDIA/tacotron2)
