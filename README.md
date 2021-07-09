@@ -114,7 +114,7 @@ python inference.py --text ' '
 
 ## Note
 Since this repo is unofficial implementation and WaveGrad2 paper did not provided several details, slight difference between paper could be exist.   
-- Normal LSTM without ZoneOut is applied 
+- Normal LSTM without ZoneOut is applied for encoder. 
 - etc.
 
 ## Author
