@@ -122,7 +122,7 @@ $ tensorboard --logdir=./tensorboard --bind_all
 python inference.py -c <checkpoint_path> --text <'text'>
 ```
 
-- Or you can run `wavegrad2_tester.ipynb`.
+- Or you can run [inference.ipynb](./inference.ipynb).<br>
 
 **Checkpoint file will be released!**
 
