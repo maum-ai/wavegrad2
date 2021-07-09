@@ -187,6 +187,7 @@ This code is implemented by
 - Chen *et al.*, [WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis](https://arxiv.org/abs/2106.09660)
 - Chen *et al.*,[WaveGrad: Estimating Gradients for Waveform Generation](https://arxiv.org/abs/2009.00713)
 - Ho *et al.*, [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
+- Shen *et al.*, [Non-Attentive Tacotron: Robust and Controllable Neural TTS Synthesis Including Unsupervised Duration Modeling](https://arxiv.org/abs/2010.04301)
 
 This implementation uses code from following repositories:
 - [J.Ho's Official DDPM Implementation](https://github.com/hojonathanho/diffusion)
