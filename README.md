@@ -6,6 +6,7 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 ## TODO
 - [ ] MT + SpecAug
 - [ ] WaveGrad-Large Decoder
+- [ ] inference by reduced sampling steps
 - [ ] Sample pages
 - [ ] Checkpoint release
 
@@ -113,8 +114,15 @@ python inference.py --text ' '
 **Checkpoint file will be released!**
 
 ## Note
-Since this repo is unofficial implementation and WaveGrad2 paper did not provided several details, slight difference between paper could be exist.   
+Since this repo is unofficial implementation and WaveGrad2 paper did not provided several details, slight difference between paper could be exist.  
+We listed modifications or arbitrary setups
 - Normal LSTM without ZoneOut is applied for encoder. 
+- hyperparameters
+  - `train.batch_size: 12` by 2 A100 (40GB) GPUs
+  - `train.adam.lr: 3e-4` and `train.adam.weight_decay: 1e-6`
+  - learning rate decay
+  - `ddpm.ddpm_noise_schedule: torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)`
+  - `total_loss = 1 * L1_loss + 1 * duration_loss`
 - etc.
 ## Tree
 ```
