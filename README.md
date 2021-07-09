@@ -33,7 +33,7 @@ path:
   preprocessed_path: './preprocessed_data/LJSpeech'
 ``` 
 
-- Run `prepare_align.py` for some preparations. 
+- run `prepare_align.py` for some preparations. 
 ```shell script
 python prepare_align.py -c preprocess.yaml
 ```
