@@ -107,7 +107,7 @@ $ tensorboard --logdir=./tensorboard --bind_all
 ## Inference
 - run `inference.py`
 ```shell script
-python inference.py --text ' '
+python inference.py -c <checkpoint_path> --text <text>
 ```
 
 - Or you can run `wavegrad2_tester.ipynb`.
