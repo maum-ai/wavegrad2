@@ -20,6 +20,7 @@ data:
   train_meta: 'train.txt'  # relative path of metadata file from train_dir
   val_dir: 'preprocessed_data/LJSpeech'
   val_meta: 'val.txt'  # relative path of metadata file from val_dir'
+  lexicon_path: 'lexicon/librispeech-lexicon.txt'
 
 audio:
   n_mel_channels: 80
@@ -64,8 +65,8 @@ ddpm:
   noise_schedule: "torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)"
   pos_emb_scale: 5000
   pos_emb_channels: 128 
-  infer_step: 8
-  infer_schedule: "torch.tensor([1e-6,2e-6,1e-5,1e-4,1e-3,1e-2,1e-1,9e-1])"
+  infer_step: 8 #TBD
+  infer_schedule: "torch.tensor([1e-6,2e-6,1e-5,1e-4,1e-3,1e-2,1e-1,9e-1])" #TBD
 
 log:
   name: 'wavegrad2'

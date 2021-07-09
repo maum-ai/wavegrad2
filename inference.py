@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from utils.stft import STFTMag
 import numpy as np
 from g2p_en import G2p
+from pypinyin import pinyin, Style
 import re
 
 from dataloader import TextAudioDataset
@@ -32,11 +33,16 @@ def save_stft_mag(wav, fname):
     return
 
 def preprocess_eng(hparams, text):
+    lexicon = hparams.data.lexicon_path
+
     g2p = G2p()
     phones = []
     words = re.split(r"([,;.\-\?\!\s+])", text)
     for w in words:
-        phones += list(filter(lambda p: p != " ", g2p(w)))
+        if w.lower() in lexicon:
+            phones += lexicon[w.lower()]
+        else:
+            phones += list(filter(lambda p: p != " ", g2p(w)))
     phones = "{" + "}{".join(phones) + "}"
     phones = re.sub(r"\{[^\w\s]?\}", "{sp}", phones)
     print('g2p: ', phones)
@@ -45,6 +51,32 @@ def preprocess_eng(hparams, text):
 
     text = trainset.get_text(phones)
     text = text.unsqueeze(0)
+    return text
+
+def preprocess_mandarin(hparams, text):
+    lexicon = hparams.data.lexicon_path
+
+    phones = []
+    pinyins = [
+        p[0]
+        for p in pinyin(
+            text, style=Style.TONE3, strict=False, neutral_tone_with_five=True
+        )
+    ]
+    for p in pinyins:
+        if p in lexicon:
+            phones += lexicon[p]
+        else:
+            phones.append("sp")
+
+    phones = "{" + " ".join(phones) + "}"
+    print('g2p: ', phones)
+
+    trainset = TextAudioDataset(hparams, hparams.data.train_dir, hparams.data.train_meta, train=False)
+
+    text = trainset.get_text(phones)
+    text = text.unsqueeze(0)
+
     return text
 
 if __name__ == '__main__':
@@ -100,7 +132,7 @@ if __name__ == '__main__':
     text = text.cuda()
     spk_id = spk_id.cuda()
 
-    wav_recon, align = model.inference(text, spk_id, pace=args.pace)
+    wav_recon, align, *_ = model.inference(text, spk_id, pace=args.pace)
 
     save_stft_mag(wav_recon, os.path.join(hparams.log.test_result_dir, f'{args.text}.png'))
     swrite(os.path.join(hparams.log.test_result_dir, f'{args.text}.wav'),

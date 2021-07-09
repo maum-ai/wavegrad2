@@ -20,8 +20,9 @@ Run pip3 install prefetch_generator
 Run pip3 install librosa==0.8.0
 Run pip3 install omegaconf==2.0.6
 Run pip3 install pytorch_lightning==1.2.10
-Run pip3 install xpinyin==0.5.7
 Run pip3 install tgt==1.4.4
+Run pip3 install pypinyin==0.39.0
+Run pip3 install xpinyin==0.5.7
 Run pip3 install g2p_en==2.1.0
 
 Run ldconfig && \
@@ -35,9 +36,9 @@ COPY *py /workspace/
 COPY *yaml /workspace/
 COPY utils /workspace/utils
 
-#ARG USER_ID
-#ARG GROUP_ID
-#RUN addgroup --gid $GROUP_ID your_id
-#RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID your_id
+ARG USER_ID
+ARG GROUP_ID
+RUN addgroup --gid $GROUP_ID your_id
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID your_id
 
-#USER your_id
+USER your_id
