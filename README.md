@@ -6,14 +6,16 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 ##TODO
 - [ ] MT + SpecAug
 - [ ] Zoneout LSTM
+- [ ] Sample pages
+- [ ] Checkpoint release
 
 ## Requirements
 - [Pytorch](https://pytorch.org/) 
 - [Pytorch-Lightning](https://github.com/PyTorchLightning/pytorch-lightning)==1.2.10
 - The requirements are highlighted in [requirements.txt](./requirements.txt).<br>
 - We also provide docker setup [Dockerfile](./Dockerfile).<br>
-## Datasets
 
+## Datasets
 The supported datasets are
 
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
@@ -62,7 +64,11 @@ $ python trainer.py
 ```shell script
 $ tensorboard --logdir=./tensorboard --bind_all
 ```
+![](./docs/tblogger.png)
+![](./docs/spec.png)
+
 ## Inference
+**Checkpoint file will be released!**
 
 ## Author
 This code is implemented by
@@ -84,4 +90,7 @@ This implementation uses code from following repositories:
 - [mindslab's NU-Wave](https://github.com/mindslab-ai/nuwave)
 - [Keith Ito's Tacotron implementation](https://github.com/keithito/tacotron)
 - [NVIDIA's Tacotron2 implementation](https://github.com/NVIDIA/tacotron2)
+
+The audio samples on our webpage(TBD) are partially derived from:
+- [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
 
