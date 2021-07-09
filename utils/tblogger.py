@@ -41,7 +41,7 @@ class TensorBoardLoggerExpanded(TensorBoardLogger):
         plt.ylabel('Encoder timestep')
         plt.tight_layout()
 
-        name_list = ['y_recon_allstep', 'y', f'y_noisy(Diffstep_{step})', 'y_recon', 'errer_recon']
+        name_list = ['y_recon_allstep', 'y', f'y_noisy(Diffstep_{step})', 'y_recon', 'error_recon']
         for i, yy in enumerate([y_recon_allstep, y, y_noisy, y_recon, eps_error]):
             ax=plt.subplot(6, 1, i + 2)
             ax.set_title(name_list[i])
