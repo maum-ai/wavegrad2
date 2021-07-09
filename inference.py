@@ -32,8 +32,19 @@ def save_stft_mag(wav, fname):
     plt.close()
     return
 
+def read_lexicon(lex_path):
+    lexicon = {}
+    with open(lex_path) as f:
+        for line in f:
+            temp = re.split(r"\s+", line.strip("\n"))
+            word = temp[0]
+            phones = temp[1:]
+            if word.lower() not in lexicon:
+                lexicon[word.lower()] = phones
+    return lexicon
+
 def preprocess_eng(hparams, text):
-    lexicon = hparams.data.lexicon_path
+    lexicon = read_lexicon(hparams.data.lexicon_path)
 
     g2p = G2p()
     phones = []
@@ -54,7 +65,7 @@ def preprocess_eng(hparams, text):
     return text
 
 def preprocess_mandarin(hparams, text):
-    lexicon = hparams.data.lexicon_path
+    lexicon = read_lexicon(hparams.data.lexicon_path)
 
     phones = []
     pinyins = [
@@ -114,7 +125,8 @@ if __name__ == '__main__':
     os.makedirs(hparams.log.test_result_dir, exist_ok=True)
     if args.steps is not None:
         hparams.ddpm.max_step = args.steps
-        hparams.ddpm.noise_schedule = \
+        if args.steps == 8:
+            hparams.ddpm.noise_schedule = \
                 "torch.tensor([1e-6,2e-6,1e-5,1e-4,1e-3,1e-2,1e-1,9e-1])"
     else:
         args.steps = hparams.ddpm.max_step
