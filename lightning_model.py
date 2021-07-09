@@ -169,15 +169,15 @@ class Wavegrad2(pl.LightningModule):
             else self.sqrt_alphas_cumprod_prev[step].unsqueeze(-1)
         eps_recon, eps, wav_sliced, wav_noisy_sliced, hidden_rep_sliced, alignment, duration, mask = \
             self(text, wav, duration_target, speakers, input_lengths, output_lengths, noise_level)
-        noise_loss = self.norm(eps_recon, eps)
+        l1_loss = self.norm(eps_recon, eps)
 
         mask = ~mask
         duration = duration.masked_select(mask)
         duration_target = duration_target.masked_select(mask)
         duration_loss = self.mse_loss(duration, duration_target / (self.hparams.audio.sampling_rate / self.hparams.window.scale))
 
-        loss = noise_loss + self.hparams.train.loss_rate.dur * duration_loss
-        return loss, noise_loss, duration_loss, wav_sliced, wav_noisy_sliced, eps, eps_recon, hidden_rep_sliced, alignment
+        loss = l1_loss + self.hparams.train.loss_rate.dur * duration_loss
+        return loss, l1_loss, duration_loss, wav_sliced, wav_noisy_sliced, eps, eps_recon, hidden_rep_sliced, alignment
 
     def inference(self, text, speakers, pace=1.0):
         text_encoding = self.encoder.inference(text)
@@ -194,10 +194,10 @@ class Wavegrad2(pl.LightningModule):
         text, wav, duration_target, speakers, input_lengths, output_lengths, max_input_len = batch
         step = torch.randint(
             0, self.max_step, (wav.shape[0],), device=self.device) + 1
-        loss, noise_loss, duration_loss, *_ = \
+        loss, l1_loss, duration_loss, *_ = \
             self.common_step(text, wav, duration_target, speakers, input_lengths, output_lengths, step)
 
-        self.log('train/noise_loss', noise_loss, sync_dist=True)
+        self.log('train/L1_loss', l1_loss, sync_dist=True)
         self.log('train/duration_loss', duration_loss, sync_dist=True)
         self.log('train/loss', loss, sync_dist=True)
 
@@ -208,10 +208,10 @@ class Wavegrad2(pl.LightningModule):
 
         step = torch.randint(
             0, self.max_step, (wav.shape[0],), device=self.device) + 1
-        loss, noise_loss, duration_loss, wav, wav_noisy, eps, eps_recon, hidden_rep, alignment = \
+        loss, l1_loss, duration_loss, wav, wav_noisy, eps, eps_recon, hidden_rep, alignment = \
             self.common_step(text, wav, duration_target, speakers, input_lengths, output_lengths, step)
 
-        self.log('val/noise_loss', noise_loss, sync_dist=True)
+        self.log('val/L1_loss', l1_loss, sync_dist=True)
         self.log('val/duration_loss', duration_loss, sync_dist=True)
         self.log('val/loss', loss, sync_dist=True)
         if batch_idx == 0:
