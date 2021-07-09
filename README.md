@@ -122,18 +122,6 @@ Since this repo is unofficial implementation and WaveGrad2 paper did not provide
 ├── Dockerfile
 ├── README.md
 ├── dataloader.py
-├── datasets
-│   ├── __pycache__
-│   │   ├── __init__.cpython-36.pyc
-│   │   ├── dataloader.cpython-36.pyc
-│   │   └── text_mel_dataset.cpython-36.pyc
-│   └── text
-│       └── __pycache__
-│           ├── __init__.cpython-36.pyc
-│           ├── cleaners.cpython-36.pyc
-│           ├── cmudict.cpython-36.pyc
-│           ├── numbers.cpython-36.pyc
-│           └── symbols.cpython-36.pyc
 ├── docs
 │   ├── spec.png
 │   ├── tb.png
