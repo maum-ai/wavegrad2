@@ -98,6 +98,18 @@ data:
 $ python trainer.py
 ```
 
+- If you want to resume training from checkpoint, check parser.
+```shell script
+parser = argparse.ArgumentParser()
+parser.add_argument('-r', '--resume_from', type =int,\
+	required = False, help = "Resume Checkpoint epoch number")
+parser.add_argument('-s', '--restart', action = "store_true",\
+	required = False, help = "Significant change occured, use this")
+parser.add_argument('-e', '--ema', action = "store_true",
+	required = False, help = "Start from ema checkpoint")
+args = parser.parse_args()
+```
+
 - During training, tensorboard logger is logging loss, spectrogram and audio.
 ```shell script
 $ tensorboard --logdir=./tensorboard --bind_all
@@ -107,10 +119,10 @@ $ tensorboard --logdir=./tensorboard --bind_all
 ## Inference
 - run `inference.py`
 ```shell script
-python inference.py -c <checkpoint_path> --text <text>
+python inference.py -c <checkpoint_path> --text <'text'>
 ```
 
-- Or you can run `wavegrad2_tester.ipynb`.
+- Or you can run [inference.ipynb](./inference.ipynb).<br>
 
 **Checkpoint file will be released!**
 
@@ -187,6 +199,7 @@ This code is implemented by
 - Chen *et al.*, [WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis](https://arxiv.org/abs/2106.09660)
 - Chen *et al.*,[WaveGrad: Estimating Gradients for Waveform Generation](https://arxiv.org/abs/2009.00713)
 - Ho *et al.*, [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
+- Shen *et al.*, [Non-Attentive Tacotron: Robust and Controllable Neural TTS Synthesis Including Unsupervised Duration Modeling](https://arxiv.org/abs/2010.04301)
 
 This implementation uses code from following repositories:
 - [J.Ho's Official DDPM Implementation](https://github.com/hojonathanho/diffusion)
