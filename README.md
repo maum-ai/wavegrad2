@@ -200,6 +200,9 @@ This implementation uses code from following repositories:
 - [Keith Ito's Tacotron implementation](https://github.com/keithito/tacotron)
 - [NVIDIA's Tacotron2 implementation](https://github.com/NVIDIA/tacotron2)
 
+The webpage for the audio samples uses a template from:
+- [WaveGrad2 Official Github.io](https://wavegrad.github.io/v2/)
+
 The audio samples on our webpage(TBD) are partially derived from:
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
 - [WaveGrad2 Official Github.io](https://wavegrad.github.io/v2/)
