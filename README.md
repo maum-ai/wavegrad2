@@ -2,13 +2,15 @@
 
 **WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis**<br>
 Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-lightning) Implementation of Chen *et al.*(JHU, Google Brain), [WaveGrad2](https://arxiv.org/abs/2106.09660).<br>
+Audio Samples: https://mindslab-ai.github.io/wavegrad2/<br>
+
+![](./docs/sampling.gif)
 
 ## TODO
-- [ ] MT + SpecAug
+- [ ] More training for WaveGrad-Base setup
+- [ ] Checkpoint release
 - [ ] WaveGrad-Large Decoder
 - [ ] Inference by reduced sampling steps
-- [ ] Sample pages
-- [ ] Checkpoint release
 
 ## Requirements
 - [Pytorch](https://pytorch.org/) 
@@ -18,7 +20,6 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 
 ## Datasets
 The supported datasets are
-
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
 - [AISHELL-3](http://www.aishelltech.com/aishell_3): a Mandarin TTS dataset with 218 male and female speakers, roughly 85 hours in total.
 - etc.
@@ -64,7 +65,7 @@ python preprocess.py -c preprocess.yaml
 ```
 ## Training
 - Adjust `hparameter.yaml`, especially `train` section.
-```shell script
+```yaml
 train:
   batch_size: 12 # Dependent on GPU memory size
   adam:
@@ -81,7 +82,7 @@ train:
 ```
 
 - If you want to train with other dataset, adjust `data` section in `hparameter.yaml`
-```shell script
+```yaml
 data:
   lang: 'eng'
   text_cleaners: ['english_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
@@ -95,22 +96,34 @@ data:
 
 - run `trainer.py`
 ```shell script
-$ python trainer.py
+python trainer.py
+```
+
+- If you want to resume training from checkpoint, check parser.
+```shell script
+parser = argparse.ArgumentParser()
+parser.add_argument('-r', '--resume_from', type =int,\
+	required = False, help = "Resume Checkpoint epoch number")
+parser.add_argument('-s', '--restart', action = "store_true",\
+	required = False, help = "Significant change occured, use this")
+parser.add_argument('-e', '--ema', action = "store_true",
+	required = False, help = "Start from ema checkpoint")
+args = parser.parse_args()
 ```
 
 - During training, tensorboard logger is logging loss, spectrogram and audio.
 ```shell script
-$ tensorboard --logdir=./tensorboard --bind_all
+tensorboard --logdir=./tensorboard --bind_all
 ```
 ![](./docs/tb.png)
 
 ## Inference
 - run `inference.py`
 ```shell script
-python inference.py -c <checkpoint_path> --text <text>
+python inference.py -c <checkpoint_path> --text <'text'>
 ```
 
-- Or you can run `wavegrad2_tester.ipynb`.
+- Or you can run [inference.ipynb](./inference.ipynb).<br>
 
 **Checkpoint file will be released!**
 
@@ -121,12 +134,14 @@ We listed modifications or arbitrary setups
 - [g2p\_en](https://github.com/Kyubyong/g2p) is applied instead of Google's unknown G2P.
 - Trained with LJSpeech datasdet instead of Google's proprietary dataset.
   - Due to dataset replacement, output audio's sampling rate becomes 22.05kHz instead of 24kHz.
+- MT + SpecAug are not implemented
 - hyperparameters
   - `train.batch_size: 12` for 2 A100 (40GB) GPUs
   - `train.adam.lr: 3e-4` and `train.adam.weight_decay: 1e-6`
   - `train.decay` learning rate decay is applied during training
   - `train.loss_rate: 1` as `total_loss = 1 * L1_loss + 1 * duration_loss`
   - `ddpm.ddpm_noise_schedule: torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)`
+- Current sample page only contains samples from `WaveGrad-Base` decoder.
 - *TODO* things.
 
 ## Tree
@@ -180,13 +195,19 @@ We listed modifications or arbitrary setups
 
 ## Author
 This code is implemented by
-- Seungu Han at MINDs Lab [hansw0326@mindslab.ai](mailto:hansw0326@mindslab.ai)
-- Junhyeok Lee at MINDs Lab [jun3518@mindslab.ai](mailto:jun3518@mindslab.ai)
+- [Seungu Han](https://github.com/Seungwoo0326) at MINDs Lab [hansw0326@mindslab.ai](mailto:hansw0326@mindslab.ai)
+- [Junhyeok Lee](https://github.com/junjun3518) at MINDs Lab [jun3518@mindslab.ai](mailto:jun3518@mindslab.ai)
+
+Special thanks to 
+- [Kang-wook Kim](https://github.com/wookladin) at MINDs Lab 
+- [Wonbin Jung](https://github.com/Wonbin-Jung) at MINDs Lab
+- [Sang Hoon Woo](https://github.com/tonyswoo) at MINDs Lab
 
 ## References
 - Chen *et al.*, [WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis](https://arxiv.org/abs/2106.09660)
 - Chen *et al.*,[WaveGrad: Estimating Gradients for Waveform Generation](https://arxiv.org/abs/2009.00713)
 - Ho *et al.*, [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
+- Shen *et al.*, [Non-Attentive Tacotron: Robust and Controllable Neural TTS Synthesis Including Unsupervised Duration Modeling](https://arxiv.org/abs/2010.04301)
 
 This implementation uses code from following repositories:
 - [J.Ho's Official DDPM Implementation](https://github.com/hojonathanho/diffusion)

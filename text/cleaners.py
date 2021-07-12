@@ -16,7 +16,7 @@ hyperparameter. Some cleaners are English-specific. You'll typically want to use
 import re
 from unidecode import unidecode
 from unicodedata import normalize
-from xpinyin import Pinyin
+from pypinyin import pinyin, Style
 from .numbers import normalize_numbers
 
 
@@ -56,8 +56,6 @@ _cht_norm = [(re.compile(r'[%s]' % x[0]), x[1]) for x in [
   ('：︰', ':'),
   ('　', ' ')
 ]]
-
-_pinyin = Pinyin()
 
 def expand_abbreviations(text):
   for regex, replacement in _abbreviations:
@@ -111,13 +109,19 @@ def korean_cleaners(text, for_dict=None, dictionary=None):
   text = normalize('NFKD', text)
   return text
 
+
 def chinese_cleaners(text):
   '''Pipeline for Chinese text, including collapses whitespace.'''
   for regex, replacement in _cht_norm:
     text = re.sub(regex, replacement, text)
   text = collapse_whitespace(text)
   text = text.strip()
-  text = _pinyin.get_pinyin(text, splitter='', tone_marks='numbers')
+  text = [
+    p[0] for p in pinyin(
+      text, style=Style.TONE3, strict=False, neutral_tone_with_five=True
+    )
+  ]
+  text = "".join(text)
   return text
 
 def japanese_romaji_cleaners(text):
