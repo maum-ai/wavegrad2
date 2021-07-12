@@ -108,7 +108,8 @@ def create_dataloader(hparams, cv):
 
         text_padded = torch.zeros((len(batch), max_input_len[0]), dtype=torch.long)
         max_target_len = max([x[1].size(0) for x in batch])
-        max_target_len = max_target_len + (hparams.window.scale - max_target_len % hparams.window.scale)
+        if max_target_len % hparams.window.scale != 0:
+            max_target_len = max_target_len + (hparams.window.scale - max_target_len % hparams.window.scale)
 
         wav_padded = torch.zeros(len(batch), max_target_len)
         output_lengths = torch.empty(len(batch), dtype=torch.long)

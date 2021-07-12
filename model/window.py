@@ -24,4 +24,9 @@ class Window(BaseModule):
             y_clean_sliced.append(y_clean[i, self.scale * start_index:self.scale * (start_index + self.length)])
         y_clean_sliced = torch.stack(y_clean_sliced, dim=0)
         hidden_rep_sliced = torch.stack(hidden_rep_sliced, dim=0)
+        if hidden_rep_sliced.size(-1) < self.length:
+            hidden_rep_sliced = F.pad(hidden_rep_sliced, (0, self.length - hidden_rep_sliced.size(-1)),
+                                      mode='constant', value=0.0)
+            y_clean_sliced = F.pad(y_clean_sliced, (0, self.scale * self.length - y_clean_sliced.size(-1)),
+                                      mode='constant', value=0.0)
         return y_clean_sliced, hidden_rep_sliced
