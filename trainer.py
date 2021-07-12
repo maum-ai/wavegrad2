@@ -47,15 +47,19 @@ class EMACallback(Callback):
 
     @rank_zero_only
     def on_epoch_end(self, trainer, pl_module):
-        self.queue.append(trainer.current_epoch)
-        torch.save(self.current_parameters,
-                   self.filepath.format(epoch=trainer.current_epoch))
-        pl_module.print(
-            f'{self.filepath.format(epoch = trainer.current_epoch)} is saved')
+        if hasattr(self, 'current_parameters'):
+            self.current_parameters = deepcopy(pl_module.state_dict())
 
-        while len(self.queue) > self.k:
-            self._del_model(self.queue.pop(0))
-        return
+        else:
+            self.queue.append(trainer.current_epoch)
+            torch.save(self.current_parameters,
+                       self.filepath.format(epoch=trainer.current_epoch))
+            pl_module.print(
+                f'{self.filepath.format(epoch = trainer.current_epoch)} is saved')
+
+            while len(self.queue) > self.k:
+                self._del_model(self.queue.pop(0))
+            return
 
 
 def train(args):
