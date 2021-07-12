@@ -120,13 +120,14 @@ We listed modifications or arbitrary setups
 - [g2p\_en](https://github.com/Kyubyong/g2p) is applied instead of Google's unknown G2P.
 - Trained with LJSpeech datasdet instead of Google's proprietary dataset.
   - Due to dataset replacement, output audio's sampling rate becomes 22.05kHz instead of 24kHz.
-- MT + SpecAug are not implemented
+- MT + SpecAug are not implemented.
 - hyperparameters
   - `train.batch_size: 12` for 2 A100 (40GB) GPUs
   - `train.adam.lr: 3e-4` and `train.adam.weight_decay: 1e-6`
   - `train.decay` learning rate decay is applied during training
   - `train.loss_rate: 1` as `total_loss = 1 * L1_loss + 1 * duration_loss`
   - `ddpm.ddpm_noise_schedule: torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)`
+  - `encoder.channel` is reduced to 512 from 1024 or 2048
 - Current sample page only contains samples from `WaveGrad-Base` decoder.
 - *TODO* things.
 
