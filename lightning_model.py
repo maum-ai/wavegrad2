@@ -188,7 +188,7 @@ class Wavegrad2(pl.LightningModule):
         decoder_input = torch.cat((text_encoding, speaker_emb), dim=2)
         hidden_rep, alignment, duration, sigma = self.resampling.inference(decoder_input, pace=pace)
         wav_recon = self.sample(hidden_rep, store_intermediate_states=False)
-        wav_recon = torch.clamp(wav_recon, min=-1, max=1)
+        wav_recon = torch.clamp(wav_recon, min=-1, max=1-torch.finfo(torch.float16).eps)
         return wav_recon, alignment, duration, sigma
 
     def training_step(self, batch, batch_idx):

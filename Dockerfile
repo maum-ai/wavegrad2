@@ -22,7 +22,6 @@ Run pip3 install omegaconf==2.0.6
 Run pip3 install pytorch_lightning==1.2.10
 Run pip3 install tgt==1.4.4
 Run pip3 install pypinyin==0.39.0
-Run pip3 install xpinyin==0.5.7
 Run pip3 install g2p_en==2.1.0
 
 Run ldconfig && \
