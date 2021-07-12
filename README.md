@@ -18,7 +18,6 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 
 ## Datasets
 The supported datasets are
-
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
 - [AISHELL-3](http://www.aishelltech.com/aishell_3): a Mandarin TTS dataset with 218 male and female speakers, roughly 85 hours in total.
 - etc.
@@ -64,7 +63,7 @@ python preprocess.py -c preprocess.yaml
 ```
 ## Training
 - Adjust `hparameter.yaml`, especially `train` section.
-```shell script
+```yaml
 train:
   batch_size: 12 # Dependent on GPU memory size
   adam:
@@ -81,7 +80,7 @@ train:
 ```
 
 - If you want to train with other dataset, adjust `data` section in `hparameter.yaml`
-```shell script
+```yaml
 data:
   lang: 'eng'
   text_cleaners: ['english_cleaners'] # korean_cleaners, english_cleaners, chinese_cleaners
@@ -95,12 +94,12 @@ data:
 
 - run `trainer.py`
 ```shell script
-$ python trainer.py
+python trainer.py
 ```
 
 - During training, tensorboard logger is logging loss, spectrogram and audio.
 ```shell script
-$ tensorboard --logdir=./tensorboard --bind_all
+tensorboard --logdir=./tensorboard --bind_all
 ```
 ![](./docs/tb.png)
 
