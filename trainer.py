@@ -47,14 +47,19 @@ class EMACallback(Callback):
 
     @rank_zero_only
     def on_epoch_end(self, trainer, pl_module):
-        self.queue.append(trainer.current_epoch)
-        torch.save(self.current_parameters,
-                   self.filepath.format(epoch=trainer.current_epoch))
-        pl_module.print(
-            f'{self.filepath.format(epoch = trainer.current_epoch)} is saved')
+        if hasattr(self, 'current_parameters'):
+            self.queue.append(trainer.current_epoch)
+            torch.save(self.current_parameters,
+                       self.filepath.format(epoch=trainer.current_epoch))
+            pl_module.print(
+                f'{self.filepath.format(epoch = trainer.current_epoch)} is saved')
 
-        while len(self.queue) > self.k:
-            self._del_model(self.queue.pop(0))
+            while len(self.queue) > self.k:
+                self._del_model(self.queue.pop(0))
+
+        else:
+            self.current_parameters = deepcopy(pl_module.state_dict())
+
         return
 
 
@@ -114,10 +119,10 @@ def train(args):
         max_epochs=200000,
         logger=tblogger,
         progress_bar_refresh_rate=4,
-        # callbacks=[
-        #     EMACallback(os.path.join(hparams.log.checkpoint_dir,
-        #                 f'{hparams.name}_epoch={{epoch}}_EMA'))
-        #           ],
+        callbacks=[
+            EMACallback(os.path.join(hparams.log.checkpoint_dir,
+                         f'{hparams.name}_epoch={{epoch}}_EMA'))
+                   ],
         resume_from_checkpoint=None
         if args.resume_from == None or args.restart else sorted(
             glob(
