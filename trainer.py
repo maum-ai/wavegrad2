@@ -48,9 +48,6 @@ class EMACallback(Callback):
     @rank_zero_only
     def on_epoch_end(self, trainer, pl_module):
         if hasattr(self, 'current_parameters'):
-            self.current_parameters = deepcopy(pl_module.state_dict())
-
-        else:
             self.queue.append(trainer.current_epoch)
             torch.save(self.current_parameters,
                        self.filepath.format(epoch=trainer.current_epoch))
@@ -59,7 +56,11 @@ class EMACallback(Callback):
 
             while len(self.queue) > self.k:
                 self._del_model(self.queue.pop(0))
-            return
+
+        else:
+            self.current_parameters = deepcopy(pl_module.state_dict())
+
+        return
 
 
 def train(args):
