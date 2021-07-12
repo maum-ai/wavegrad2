@@ -5,5 +5,4 @@ omegaconf==2.0.6
 pytorch_lightning==1.2.10
 tgt==1.4.4
 pypinyin==0.39.0
-xpinyin==0.5.7
 g2p_en==2.1.0
