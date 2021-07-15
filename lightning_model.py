@@ -30,9 +30,9 @@ class Wavegrad2(pl.LightningModule):
 
         self.window = Window(hparams)
         if hparam.wavegrad.is_large: 
-            from model.nn import WaveGradNN
-        else:
             from model.nn_large import WaveGradNN
+        else:
+            from model.nn import WaveGradNN
         self.decoder = WaveGradNN(hparams)
         self.norm = nn.L1Loss()
         self.mse_loss = nn.MSELoss()
