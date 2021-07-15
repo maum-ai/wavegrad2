@@ -47,6 +47,7 @@ window:
   length: 256
 
 wavegrad:
+  is_large: False #if False, Base
   encode_channel: 576 ##512+64
   scale_factors: [5,5,3,2,2]
   upsample:
