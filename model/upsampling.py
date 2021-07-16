@@ -95,12 +95,12 @@ class UpsamplingLargeBlock(BaseModule):
     def __init__(self, in_channels, out_channels, factor, dilations):
         super(UpsamplingLargeBlock, self).__init__()
         self.upsampling_basic_block = UpsamplingBlock(
-                                        in_channels, in_channels, factor, dilations)
+                                        in_channels, out_channels, factor, dilations)
         self.first_block_main_branch = torch.nn.ModuleDict({
             'noupsampling': torch.nn.Sequential(*[
                 torch.nn.LeakyReLU(0.2),
                 Conv1dWithInitialization(
-                    in_channels=in_channels,
+                    in_channels=out_channels,
                     out_channels=out_channels,
                     kernel_size=3,
                     stride=1,
@@ -114,7 +114,7 @@ class UpsamplingLargeBlock(BaseModule):
         })
         self.first_block_residual_branch = torch.nn.Sequential(*[
             Conv1dWithInitialization(
-                in_channels=in_channels,
+                in_channels=out_channels,
                 out_channels=out_channels,
                 kernel_size=1,
                 stride=1

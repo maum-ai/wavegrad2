@@ -65,10 +65,10 @@ class DownsamplingBlock(BaseModule):
 
 class DownsamplingLargeBlock(BaseModule):
     def __init__(self, in_channels, out_channels, factor, dilations):
-        super(DownsamplingBlock, self).__init__()
+        super(DownsamplingLargeBlock, self).__init__()
         self.downsampling_basic_block = DownsamplingBlock(
-                                        in_channels, in_channels, factor, dilations)
-        in_sizes = [in_channels] + [out_channels for _ in range(len(dilations) - 1)]
+                                        in_channels, out_channels, factor, dilations)
+        in_sizes = [out_channels] + [out_channels for _ in range(len(dilations) - 1)]
         out_sizes = [out_channels for _ in range(len(in_sizes))]
         self.main_branch = torch.nn.Sequential(*([
             ConvolutionBlock(in_size, out_size, dilation)
