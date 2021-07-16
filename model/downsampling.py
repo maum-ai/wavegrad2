@@ -76,7 +76,7 @@ class DownsamplingLargeBlock(BaseModule):
         ]))
         self.residual_branch = torch.nn.Sequential(*[
             Conv1dWithInitialization(
-                in_channels=in_channels,
+                in_channels=out_channels,
                 out_channels=out_channels,
                 kernel_size=1,
                 stride=1

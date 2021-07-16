@@ -29,7 +29,7 @@ class Wavegrad2(pl.LightningModule):
         self.resampling = Resampling(hparams)
 
         self.window = Window(hparams)
-        if hparam.wavegrad.is_large: 
+        if hparams.wavegrad.is_large:
             from model.nn_large import WaveGradNN
         else:
             from model.nn import WaveGradNN
