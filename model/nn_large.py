@@ -78,7 +78,8 @@ class WaveGradNN(BaseModule):
         ])
 
         # Building FiLM connections (in order of downscaling stream)
-        film_in_sizes = [32] + list(hparams.wavegrad.downsample.out_channels)
+        film_in_sizes = [hparams.wavegrad.downsample.preconv_channel] \
+                + list(hparams.wavegrad.downsample.out_channels)
         film_out_sizes = hparams.wavegrad.upsample.out_channels[::-1]
         film_factors = [1] + hparams.wavegrad.scale_factors[1:][::-1]
         self.films = torch.nn.ModuleList([
