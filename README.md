@@ -133,7 +133,7 @@ This notebook provides pre-trained weights for WaveGrad 2(`WaveGrad-Base` decode
 **Checkpoint file for Large will be also released!**
 
 ## Large Decoder
-We implemented `WaveGrad-Large` decoders for high MOS output.<br>
+We implemented `WaveGrad-Large` decoder for high MOS output.<br>
 **Note: it could be different with google's implementation since number of parameters are different with paper's value.**<br>
 - To train with Large model you need to modify `hparameter.yaml`.
 ```yaml
@@ -145,7 +145,6 @@ wavegrad:
 ```
 - Go back to [Training section](#training).
 
-
 ## Note
 Since this repo is unofficial implementation and WaveGrad2 paper do not provide several details, a slight differences between paper could exist.  
 We listed modifications or arbitrary setups
@@ -156,9 +155,9 @@ We listed modifications or arbitrary setups
 - MT + SpecAug are not implemented.
 - WaveGrad decoder shares same issues from [ivanvovk's WaveGrad implementation](https://github.com/ivanvovk/WaveGrad).
   - e.g. https://github.com/ivanvovk/WaveGrad/issues/24#issue-943985027
-- `WaveGrad-Large` decoder's architecture should not be same as Google's implementation.
+- `WaveGrad-Large` decoder's architecture could be different with Google's implementation.
 - hyperparameters
-  - `train.batch_size: 12` for 2 A100 (40GB) GPUs
+  - `train.batch_size: 12` for Base and `train.batch_size: 6` for Large, Trained with 2 V100 (32GB) GPUs
   - `train.adam.lr: 3e-4` and `train.adam.weight_decay: 1e-6`
   - `train.decay` learning rate decay is applied during training
   - `train.loss_rate: 1` as `total_loss = 1 * L1_loss + 1 * duration_loss`

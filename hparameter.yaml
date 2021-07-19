@@ -1,5 +1,5 @@
 train:
-  batch_size: 6
+  batch_size: 12
   adam:
     lr: 3e-4
     weight_decay: 1e-6
@@ -47,14 +47,14 @@ window:
   length: 256
 
 wavegrad:
-  is_large: True #if False, Base
+  is_large: False #if False, Base
   encode_channel: 576 ##512+64
   scale_factors: [5,5,3,2,2]
   upsample:
     preconv_channel: 768
     out_channels: [512, 512, 256, 128, 128]
-    dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
-    #dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,1,2],[1,2,1,2]]
+    #dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
+    dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,1,2],[1,2,1,2]]
   downsample:
     preconv_channel: 32
     out_channels: [128, 128, 256, 512]
