@@ -6,8 +6,8 @@ import torch
 
 from model.base import BaseModule
 from model.layers import Conv1dWithInitialization
-from model.upsampling import UpsamplingBlock as UBlock
-from model.downsampling import DownsamplingBlock as DBlock
+from model.upsampling import UpsamplingLargeBlock as UBlock
+from model.downsampling import DownsamplingLargeBlock as DBlock
 from model.linear_modulation import FeatureWiseLinearModulation as FiLM
 
 

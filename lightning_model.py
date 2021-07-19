@@ -13,7 +13,6 @@ import dataloader
 from utils.tblogger import TensorBoardLoggerExpanded
 from model.encoder import TextEncoder
 from model.resampling import Resampling
-from model.nn import WaveGradNN
 from model.window import Window
 
 
@@ -30,6 +29,10 @@ class Wavegrad2(pl.LightningModule):
         self.resampling = Resampling(hparams)
 
         self.window = Window(hparams)
+        if hparams.wavegrad.is_large:
+            from model.nn_large import WaveGradNN
+        else:
+            from model.nn import WaveGradNN
         self.decoder = WaveGradNN(hparams)
         self.norm = nn.L1Loss()
         self.mse_loss = nn.MSELoss()

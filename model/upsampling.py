@@ -88,3 +88,54 @@ class UpsamplingBlock(BaseModule):
         residual = self.second_block_main_branch['modulation_0'](outputs, scale, shift)
         outputs = outputs + self.second_block_main_branch['modulation_1'](residual, scale, shift)
         return outputs
+
+
+
+class UpsamplingLargeBlock(BaseModule):
+    def __init__(self, in_channels, out_channels, factor, dilations):
+        super(UpsamplingLargeBlock, self).__init__()
+        self.upsampling_basic_block = UpsamplingBlock(
+                                        in_channels, out_channels, factor, dilations)
+        self.first_block_main_branch = torch.nn.ModuleDict({
+            'noupsampling': torch.nn.Sequential(*[
+                torch.nn.LeakyReLU(0.2),
+                Conv1dWithInitialization(
+                    in_channels=out_channels,
+                    out_channels=out_channels,
+                    kernel_size=3,
+                    stride=1,
+                    padding=dilations[0],
+                    dilation=dilations[0]
+                )
+            ]),
+            'modulation': BasicModulationBlock(
+                out_channels, dilation=dilations[1]
+            )
+        })
+        self.first_block_residual_branch = torch.nn.Sequential(*[
+            Conv1dWithInitialization(
+                in_channels=out_channels,
+                out_channels=out_channels,
+                kernel_size=1,
+                stride=1
+            ),
+        ])
+        self.second_block_main_branch = torch.nn.ModuleDict({
+            f'modulation_{idx}': BasicModulationBlock(
+                out_channels, dilation=dilations[2 + idx]
+            ) for idx in range(2)
+        })
+
+    def forward(self, x, scale, shift):
+        # Frist Upsampling block
+        x = self.upsampling_basic_block(x, scale, shift)
+        # Second Block with no upsampling
+        # Second-First residual block
+        outputs = self.first_block_main_branch['noupsampling'](x)
+        outputs = self.first_block_main_branch['modulation'](outputs, scale, shift)
+        outputs = outputs + self.first_block_residual_branch(x)
+
+        # Second-Second residual block
+        residual = self.second_block_main_branch['modulation_0'](outputs, scale, shift)
+        outputs = outputs + self.second_block_main_branch['modulation_1'](residual, scale, shift)
+        return outputs

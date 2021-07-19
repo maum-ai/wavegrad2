@@ -6,10 +6,13 @@ Audio Samples: https://mindslab-ai.github.io/wavegrad2/<br>
 
 ![](./docs/sampling.gif)
 
+**Update: Enjoy our pre-trained model with [Google Colab notebook](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing)!**
+
 ## TODO
-- [ ] More training for WaveGrad-Base setup
-- [ ] Checkpoint release
-- [ ] WaveGrad-Large Decoder
+- [x] More training for WaveGrad-Base setup
+- [x] Checkpoint release for Base
+- [x] WaveGrad-Large Decoder
+- [ ] Checkpoint release for Large
 - [ ] Inference by reduced sampling steps
 
 ## Requirements
@@ -27,7 +30,7 @@ The supported datasets are
 We take LJSpeech as an example hereafter.
 ## Preprocessing
 - Adjust `preprocess.yaml`, especially `path` section.
-```shell script
+```yaml
 path:
   corpus_path: '/DATA1/LJSpeech-1.1' # LJSpeech corpus path
   lexicon_path: 'lexicon/librispeech-lexicon.txt'
@@ -123,9 +126,24 @@ tensorboard --logdir=./tensorboard --bind_all
 python inference.py -c <checkpoint_path> --text <'text'>
 ```
 
-- Or you can run [inference.ipynb](./inference.ipynb).<br>
+We provide a Jupyter Notebook script to provide the code for inference and show some visualizations with resulting audio.
+- [Colab notebook](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing) 
+This notebook provides pre-trained weights for WaveGrad 2 and you can download it via url inside (Now only `WaveGrad-Base` decoder).
 
-**Checkpoint file will be released!**
+**Checkpoint file for Large will be also released!**
+
+## Large Decoder
+We implemented `WaveGrad-Large` decoder for high MOS output.<br>
+**Note: it could be different with google's implementation since number of parameters are different with paper's value.**<br>
+- To train with Large model you need to modify `hparameter.yaml`.
+```yaml
+wavegrad:
+  is_large: True #if False, Base
+  ...
+  dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8]] #dilations for Large
+  #dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,1,2],[1,2,1,2]] dilations for Base
+```
+- Go back to [Training section](#training).
 
 ## Note
 Since this repo is unofficial implementation and WaveGrad2 paper do not provide several details, a slight differences between paper could exist.  
@@ -135,14 +153,16 @@ We listed modifications or arbitrary setups
 - Trained with LJSpeech datasdet instead of Google's proprietary dataset.
   - Due to dataset replacement, output audio's sampling rate becomes 22.05kHz instead of 24kHz.
 - MT + SpecAug are not implemented.
+- WaveGrad decoder shares same issues from [ivanvovk's WaveGrad implementation](https://github.com/ivanvovk/WaveGrad).
+  - e.g. https://github.com/ivanvovk/WaveGrad/issues/24#issue-943985027
+- `WaveGrad-Large` decoder's architecture could be different with Google's implementation.
 - hyperparameters
-  - `train.batch_size: 12` for 2 A100 (40GB) GPUs
+  - `train.batch_size: 12` for Base and `train.batch_size: 6` for Large, Trained with 2 V100 (32GB) GPUs
   - `train.adam.lr: 3e-4` and `train.adam.weight_decay: 1e-6`
   - `train.decay` learning rate decay is applied during training
   - `train.loss_rate: 1` as `total_loss = 1 * L1_loss + 1 * duration_loss`
   - `ddpm.ddpm_noise_schedule: torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)`
   - `encoder.channel` is reduced to 512 from 1024 or 2048
-- Current sample page only contains samples from `WaveGrad-Base` decoder.
 - *TODO* things.
 
 ## Tree
@@ -206,7 +226,7 @@ Special thanks to
 
 ## References
 - Chen *et al.*, [WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis](https://arxiv.org/abs/2106.09660)
-- Chen *et al.*,[WaveGrad: Estimating Gradients for Waveform Generation](https://arxiv.org/abs/2009.00713)
+- Chen *et al.*, [WaveGrad: Estimating Gradients for Waveform Generation](https://arxiv.org/abs/2009.00713)
 - Ho *et al.*, [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
 - Shen *et al.*, [Non-Attentive Tacotron: Robust and Controllable Neural TTS Synthesis Including Unsupervised Duration Modeling](https://arxiv.org/abs/2010.04301)
 
@@ -225,7 +245,7 @@ This implementation uses code from following repositories:
 The webpage for the audio samples uses a template from:
 - [WaveGrad2 Official Github.io](https://wavegrad.github.io/v2/)
 
-The audio samples on our webpage(TBD) are partially derived from:
+The audio samples on our webpage are partially derived from:
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
 - [WaveGrad2 Official Github.io](https://wavegrad.github.io/v2/)
 

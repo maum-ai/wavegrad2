@@ -47,12 +47,13 @@ window:
   length: 256
 
 wavegrad:
+  is_large: False #if False, Base
   encode_channel: 576 ##512+64
   scale_factors: [5,5,3,2,2]
   upsample:
     preconv_channel: 768
     out_channels: [512, 512, 256, 128, 128]
-    #dilations: [[1,2,1,2],[1,2,1,2],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
+    #dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8]]
     dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,1,2],[1,2,1,2]]
   downsample:
     preconv_channel: 32
