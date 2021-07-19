@@ -6,6 +6,8 @@ Audio Samples: https://mindslab-ai.github.io/wavegrad2/<br>
 
 ![](./docs/sampling.gif)
 
+**Update: Enjoy our pre-trained model with [Google Colab notebook](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing)!**
+
 ## TODO
 - [ ] More training for WaveGrad-Base setup
 - [ ] Checkpoint release
@@ -123,9 +125,11 @@ tensorboard --logdir=./tensorboard --bind_all
 python inference.py -c <checkpoint_path> --text <'text'>
 ```
 
-- Or you can run [inference.ipynb](./inference.ipynb).<br>
+We provide a Jupyter Notebook script to provide the code for inference and show some visualizations with resulting audio.
+- https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing
+This notebook provides pre-trained weights for WaveGrad 2(`WaveGrad-Base` decoder).
 
-**Checkpoint file will be released!**
+**Checkpoint file for Large will be also released!**
 
 ## Note
 Since this repo is unofficial implementation and WaveGrad2 paper do not provide several details, a slight differences between paper could exist.  
