@@ -7,9 +7,10 @@ Audio Samples: https://mindslab-ai.github.io/wavegrad2/<br>
 ![](./docs/sampling.gif)
 
 ## TODO
-- [ ] More training for WaveGrad-Base setup
-- [ ] Checkpoint release
-- [ ] WaveGrad-Large Decoder
+- [x] More training for WaveGrad-Base setup
+- [x] Checkpoint release for Base
+- [x] WaveGrad-Large Decoder
+- [ ] Checkpoint release for Large
 - [ ] Inference by reduced sampling steps
 
 ## Requirements
@@ -135,6 +136,9 @@ We listed modifications or arbitrary setups
 - Trained with LJSpeech datasdet instead of Google's proprietary dataset.
   - Due to dataset replacement, output audio's sampling rate becomes 22.05kHz instead of 24kHz.
 - MT + SpecAug are not implemented.
+- WaveGrad decoder shares same issues from [ivanvovk's WaveGrad implementation](https://github.com/ivanvovk/WaveGrad).
+  - e.g. https://github.com/ivanvovk/WaveGrad/issues/24#issue-943985027
+- `WaveGrad-Large` decoder's architecture should not be same as Google's implementation.
 - hyperparameters
   - `train.batch_size: 12` for 2 A100 (40GB) GPUs
   - `train.adam.lr: 3e-4` and `train.adam.weight_decay: 1e-6`
@@ -142,7 +146,6 @@ We listed modifications or arbitrary setups
   - `train.loss_rate: 1` as `total_loss = 1 * L1_loss + 1 * duration_loss`
   - `ddpm.ddpm_noise_schedule: torch.linspace(1e-6, 0.01, hparams.ddpm.max_step)`
   - `encoder.channel` is reduced to 512 from 1024 or 2048
-- Current sample page only contains samples from `WaveGrad-Base` decoder.
 - *TODO* things.
 
 ## Tree
@@ -225,7 +228,7 @@ This implementation uses code from following repositories:
 The webpage for the audio samples uses a template from:
 - [WaveGrad2 Official Github.io](https://wavegrad.github.io/v2/)
 
-The audio samples on our webpage(TBD) are partially derived from:
+The audio samples on our webpage are partially derived from:
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): a single-speaker English dataset consists of 13100 short audio clips of a female speaker reading passages from 7 non-fiction books, approximately 24 hours in total.
 - [WaveGrad2 Official Github.io](https://wavegrad.github.io/v2/)
 
