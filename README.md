@@ -127,10 +127,24 @@ python inference.py -c <checkpoint_path> --text <'text'>
 ```
 
 We provide a Jupyter Notebook script to provide the code for inference and show some visualizations with resulting audio.
-- https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing
+- [Colab notebook](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing) 
 This notebook provides pre-trained weights for WaveGrad 2(`WaveGrad-Base` decoder).
 
 **Checkpoint file for Large will be also released!**
+
+## Large Decoder
+We implemented `WaveGrad-Large` decoders for high MOS output.<br>
+**Note: it could be different with google's implementation since number of parameters are different with paper's value.**<br>
+- To train with Large model you need to modify `hparameter.yaml`.
+```yaml
+wavegrad:
+  is_large: True #if False, Base
+  ...
+  dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,4,8]] #dilations for Large
+  #dilations: [[1,2,4,8],[1,2,4,8],[1,2,4,8],[1,2,1,2],[1,2,1,2]] dilations for Base
+```
+- Go back to [Training section](#training).
+
 
 ## Note
 Since this repo is unofficial implementation and WaveGrad2 paper do not provide several details, a slight differences between paper could exist.  
