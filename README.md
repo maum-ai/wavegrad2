@@ -128,7 +128,7 @@ python inference.py -c <checkpoint_path> --text <'text'>
 
 We provide a Jupyter Notebook script to provide the code for inference and show some visualizations with resulting audio.
 - [Colab notebook](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing) 
-This notebook provides pre-trained weights for WaveGrad 2(`WaveGrad-Base` decoder).
+This notebook provides pre-trained weights for WaveGrad 2 and you can download it via url inside (Now only `WaveGrad-Base` decoder).
 
 **Checkpoint file for Large will be also released!**
 
@@ -226,7 +226,7 @@ Special thanks to
 
 ## References
 - Chen *et al.*, [WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis](https://arxiv.org/abs/2106.09660)
-- Chen *et al.*,[WaveGrad: Estimating Gradients for Waveform Generation](https://arxiv.org/abs/2009.00713)
+- Chen *et al.*, [WaveGrad: Estimating Gradients for Waveform Generation](https://arxiv.org/abs/2009.00713)
 - Ho *et al.*, [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
 - Shen *et al.*, [Non-Attentive Tacotron: Robust and Controllable Neural TTS Synthesis Including Unsupervised Duration Modeling](https://arxiv.org/abs/2010.04301)
 
