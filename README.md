@@ -27,7 +27,7 @@ The supported datasets are
 We take LJSpeech as an example hereafter.
 ## Preprocessing
 - Adjust `preprocess.yaml`, especially `path` section.
-```shell script
+```yaml
 path:
   corpus_path: '/DATA1/LJSpeech-1.1' # LJSpeech corpus path
   lexicon_path: 'lexicon/librispeech-lexicon.txt'

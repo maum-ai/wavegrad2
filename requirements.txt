@@ -6,3 +6,4 @@ pytorch_lightning==1.2.10
 tgt==1.4.4
 pypinyin==0.39.0
 g2p_en==2.1.0
+Unidecode==1.1.1
