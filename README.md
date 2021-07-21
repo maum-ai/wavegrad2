@@ -2,9 +2,8 @@
 
 **WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis**<br>
 Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-lightning) Implementation of Chen *et al.*(JHU, Google Brain), [WaveGrad2](https://arxiv.org/abs/2106.09660).<br>
-Audio Samples: https://mindslab-ai.github.io/wavegrad2/<br>
 
-[![arXiv](https://img.shields.io/badge/arXiv-2106.09660-brightgreen.svg?style=flat-square)](https://arxiv.org/abs/2106.09660) [![githubio](https://img.shields.io/badge/GitHub.io-audio_samples-blue?logo=Github&style=flat-square)](https://mindslab-ai.github.io/wavegrad2/) [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing)
+[![arXiv](https://img.shields.io/badge/arXiv-2106.09660-brightgreen.svg?style=flat-square)](https://arxiv.org/abs/2106.09660) [![githubio](https://img.shields.io/badge/GitHub.io-audio_samples-blue?logo=Github&style=flat-square)](https://mindslab-ai.github.io/wavegrad2/) [![Colab](https://img.shields.io/static/v1?message=Open%20in%20Colab&logo=googlecolab&labelColor=5c5c5c&color=yellow&logoColor=white&label=%20&style=flat-square)](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing)
 
 ![](./docs/sampling.gif)
 
