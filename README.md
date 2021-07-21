@@ -1,8 +1,9 @@
 # WaveGrad 2 &mdash; Unofficial PyTorch Implementation
 
 **WaveGrad 2: Iterative Refinement for Text-to-Speech Synthesis**<br>
-Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-lightning) Implementation of Chen *et al.*(JHU, Google Brain), [WaveGrad2](https://arxiv.org/abs/2106.09660).<br>
-Audio Samples: https://mindslab-ai.github.io/wavegrad2/<br>
+Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-lightning) Implementation of **Chen *et al.*(JHU, Google Brain), [WaveGrad2](https://arxiv.org/abs/2106.09660)**.<br>
+
+[![arXiv](https://img.shields.io/badge/arXiv-2106.09660-brightgreen.svg?style=flat-square)](https://arxiv.org/abs/2106.09660) [![githubio](https://img.shields.io/static/v1?message=Audio%20Samples&logo=Github&labelColor=grey&color=blue&logoColor=white&label=%20&style=flat-square)](https://mindslab-ai.github.io/wavegrad2/) [![Colab](https://img.shields.io/static/v1?message=Open%20in%20Colab&logo=googlecolab&labelColor=grey&color=yellow&logoColor=white&label=%20&style=flat-square)](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing)
 
 ![](./docs/sampling.gif)
 
