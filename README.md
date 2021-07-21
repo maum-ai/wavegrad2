@@ -4,6 +4,8 @@
 Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-lightning) Implementation of Chen *et al.*(JHU, Google Brain), [WaveGrad2](https://arxiv.org/abs/2106.09660).<br>
 Audio Samples: https://mindslab-ai.github.io/wavegrad2/<br>
 
+[![arXiv](https://img.shields.io/badge/arXiv-2106.09660-brightgreen.svg?style=flat-square)](https://arxiv.org/abs/2106.09660) [![githubio](https://img.shields.io/badge/GitHub.io-audio_samples-blue?logo=Github&style=flat-square)](https://mindslab-ai.github.io/wavegrad2/) [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing)
+
 ![](./docs/sampling.gif)
 
 **Update: Enjoy our pre-trained model with [Google Colab notebook](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing)!**
