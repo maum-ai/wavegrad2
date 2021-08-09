@@ -13,7 +13,7 @@ Unofficial PyTorch+[Lightning](https://github.com/PyTorchLightning/pytorch-light
 - [x] More training for WaveGrad-Base setup
 - [x] Checkpoint release for Base
 - [x] WaveGrad-Large Decoder
-- [ ] Checkpoint release for Large
+- [x] Checkpoint release for Large
 - [ ] Inference by reduced sampling steps
 
 ## Requirements
@@ -129,9 +129,7 @@ python inference.py -c <checkpoint_path> --text <'text'>
 
 We provide a Jupyter Notebook script to provide the code for inference and show some visualizations with resulting audio.
 - [Colab notebook](https://colab.research.google.com/drive/1AK3AI3lS_rXacTIYHpf0mYV4NdU56Hn6?usp=sharing) 
-This notebook provides pre-trained weights for WaveGrad 2 and you can download it via url inside (Now only `WaveGrad-Base` decoder).
-
-**Checkpoint file for Large will be also released!**
+This notebook provides pre-trained weights for WaveGrad 2 and you can download it via url inside(Both Checkpoint for `WaveGrad-Base` and `WaveGrad-Large` decoder).
 
 ## Large Decoder
 We implemented `WaveGrad-Large` decoder for high MOS output.<br>
