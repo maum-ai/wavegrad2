@@ -91,8 +91,6 @@ class TextAudioDataset(Dataset):
         with open(path, 'r', encoding='utf-8') as f:
             for line in f:
                 stripped = line.strip().split(split)
-                if self.hparams.train.fine_tuning and stripped[2] != self.hparams.train.tuning_speaker:
-                    continue
                 metadata.append(stripped)
 
         return metadata
